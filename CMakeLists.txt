@@ -11,6 +11,7 @@ add_executable(
   src/basic_auth.c
   src/base64_encode.c
   src/main_function.c
+  src/make_hostnames.c
   src/pack_protover.c
   src/parse_cmdline.c
   src/permute_strings.c
