@@ -48,7 +48,7 @@ typedef struct protocol_version {
 } PROTOCOL_VERSION, *PPROTOCOL_VERSION;
 
 typedef struct linked_list {
-  char *restrict header;
+  char *header;
   struct linked_list *next;
 } LINKED_LIST, *PLINKED_LIST;
 
@@ -83,6 +83,7 @@ typedef struct command_line {
   char *basic;
   char *hostnam;
   unsigned int portnum;
+  char *scan_ports; /* scan ports via Host: header */
 } COMMAND_LINE, *PCOMMAND_LINE;
 
 typedef struct http_response {
@@ -96,21 +97,26 @@ typedef struct http_response {
 extern COMMAND_LINE *vcmd;
 
 _Noreturn void signal_handler(const int);
-unsigned int add_header(char*restrict);
-char *base64_encode(const char*);
+unsigned int add_header(char *restrict);
+char *base64_decode(const char *);
+char *base64_encode(const char *);
 unsigned int basic_auth(const char *);
-FILE *send_request(const int, const HTTP_REQUEST*);
-int tls_send_request(BIO*, const HTTP_REQUEST*);
-size_t recv_response(FILE*);
-size_t tls_recv_response(BIO*);
-int tcp_connect(const char*, const unsigned short);
+void make_hostnames(const char *restrict *const, const char *restrict *const, unsigned int);
+void tls_error(const char *);
+FILE *send_request(const int, const HTTP_REQUEST *);
+size_t recv_response(FILE *);
+int tcp_connect(const char *, const unsigned short);
 int tcp_close(const int);
-BIO *tls_connect(const char*, const unsigned short);
-PROTOCOL_VERSION *unpack_protover(const char*);
-char *pack_protover(const PROTOCOL_VERSION*);
-COMMAND_LINE *parse_cmdline(const int, const char**);
-_Noreturn void usage_desc(const char *const restrict);
+BIO *tls_connect(const char *, const unsigned short);
+void tls_error(const char *);
+size_t tls_recv_response(BIO *);
+int tls_send_request(BIO *, const HTTP_REQUEST *);
+PROTOCOL_VERSION *unpack_protover(const char *);
+char *pack_protover(const PROTOCOL_VERSION *);
+void parse_cmdline(const int, const char **);
+_Noreturn void usage_desc(const char *const restrict); 
 size_t array_length(char **);
-void print_options(FILE*);
+signed char **print_hostnames(const char *restrict *const, const char *restrict *const, size_t);
+void print_options(FILE *);
 void print_trace(void);
 #endif

@@ -1,8 +1,10 @@
 #include"fjorge.h"
 
 size_t tls_recv_response(BIO *sockfp) {
-  static char abuf[BUFSIZ] = { 0x00 };
-  register size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0;
+  static char rbuf[BUFSIZ] = { 0x00 };
+  register size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
+  register char *abuf = rbuf;
+  char *sptr = NULL;
 
   if(!sockfp) {
     fputs("*** Encountered NULL FILE pointer before attempting to read plaintext response!\n", stderr);
@@ -10,25 +12,16 @@ size_t tls_recv_response(BIO *sockfp) {
     exit(EX_IOERR);
   }
 
-  while(BIO_read(sockfp, abuf, sizeof abuf) > 0 || BIO_should_retry(sockfp)) {
-    if(vcmd->brief) {
-      register char *restrict nl = strchr(abuf, '\n');
+  do
+    bret = BIO_read(sockfp, rbuf, sizeof rbuf);
+  while(BIO_should_retry(sockfp));
 
-      if(nl) {
-        register char *restrict cr = strchr(abuf, '\r');
+  if(bret <= 0)
+    return bret;
 
-        if(cr)
-          nl = cr;
+  abuf = strtok_r(rbuf, "\r\n", &sptr);
 
-        *nl = '\0';
-
-        fputs(abuf, stdout);
-        fputs(CRLF, stdout);
-
-        break;
-      }
-    }
-
+  while(abuf) {
     if(!strncasecmp(abuf, "content-length:", 15)) {
       register const char *restrict c1 = strchr(abuf, ' ');
 
@@ -39,6 +32,7 @@ size_t tls_recv_response(BIO *sockfp) {
       flag = 1;
 
     fputs(abuf, stdout);
+    fputs(CRLF, stdout);
 
     if(!asiz && vcmd->verbose) {
       register char *const s1 = strchr(abuf, ' ');
@@ -62,7 +56,7 @@ size_t tls_recv_response(BIO *sockfp) {
     if(vcmd->output)
       fputs(abuf, vcmd->output);
 
-    if(!asiz && vcmd->brief)
+    if(!asiz && vcmd->brief) 
       break;
 
     acnt = strlen(abuf);
@@ -74,7 +68,9 @@ size_t tls_recv_response(BIO *sockfp) {
       if(cnln && alen >= cnln)
         break;
     }
+
+    abuf = strtok_r(NULL, "\r\n", &sptr);
   }
 
-  return asiz;
+  return bret;
 }

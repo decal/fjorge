@@ -9,3 +9,4 @@ follow location redirects so many times
 act like http-traceroute.py by testing Max-Forwards
 brute force QUERY_STRING variables
 write surl (like curl but emulates HTTP/FTP/IMAP/etc. **servers**)
+display Content-Length with brief in case reply codes are all 200 like https://silentcircle.com and https://status.heroku.com

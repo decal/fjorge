@@ -98,30 +98,31 @@ static void show_version(const char *restrict av0) {
   return;
 } */
 
-COMMAND_LINE *parse_cmdline(const int ac, const char **av) {
+ void parse_cmdline(const int ac, const char **av) {
   int opt = 0;
   char *colon = NULL;
-  COMMAND_LINE *aret = calloc(1, sizeof*aret);
 
-  if(!aret)
+  vcmd = calloc(1, sizeof*vcmd);
+
+  if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while ((opt = getopt(ac, (char*const*)av, "bsdvB:VH:o:")) != -1) {
+  while ((opt = getopt(ac, (char*const*)av, "bsdvB:Vh:o:")) != -1) {
     switch (opt) {
       case 'b':
-        aret->brief++;
+        vcmd->brief++;
 
         break;
       case 's':
-        aret->secure++;
+        vcmd->secure++;
 
         break;
       case 'd':
-        aret->debug++;
+        vcmd->debug++;
 
         break;
       case 'v':
-        aret->verbose++;
+        vcmd->verbose++;
 
         break;
       case 'V':
@@ -129,35 +130,37 @@ COMMAND_LINE *parse_cmdline(const int ac, const char **av) {
 
         break;
       case 'B':
-        aret->basic = strdup(optarg);
+        vcmd->basic = strdup(optarg);
 
-        if(!aret->basic)
+        if(!vcmd->basic)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        basic_auth(aret->basic);
+        basic_auth(vcmd->basic);
 
         break;
       case 'o':
-        aret->nameout = strdup(optarg);
+        vcmd->nameout = strdup(optarg);
 
-        if(!aret->nameout)
+        if(!vcmd->nameout)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        if(!access(aret->nameout, F_OK))
-          fprintf(stderr, "*** There is a pre-existing file at the desired output path %s (appending to it)" CRLF, aret->nameout);
+        if(!access(vcmd->nameout, F_OK))
+          fprintf(stderr, "*** There is a pre-existing file at the desired output path %s (appending to it)" CRLF, vcmd->nameout);
 
-        aret->output = fopen(optarg, "a");
+        vcmd->output = fopen(optarg, "a");
 
-        if(!aret->output)
+        if(!vcmd->output)
           error(1, errno, "fopen: %s", strerror(errno));
 
         break;
-      case 'H':
+      case 'h':
         add_header(optarg);
 
         break;
+      case 'C': /* CIDR block scan */
+      case 'M': /* method scan */
+      case 'P': /* port scan */
       case '?':
-      case 'h':
       default: 
         usage_desc(*av);
     }
@@ -166,22 +169,22 @@ COMMAND_LINE *parse_cmdline(const int ac, const char **av) {
   if(test_arguments(optind, ac)) 
     usage_desc(*av);
 
-  aret->hostnam = strdup(av[optind]);
+  vcmd->hostnam = strdup(av[optind]);
 
-  if(!aret->hostnam)
+  if(!vcmd->hostnam)
     error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-  colon = strchr(aret->hostnam, ':');
+  colon = strchr(vcmd->hostnam, ':');
 
   if(!colon) {
-    aret->portnum = 80u;
+    vcmd->portnum = 80u;
 
-    if(aret->debug)
+    if(vcmd->debug)
       fputs("*-* Port number not provided in HOST[:PORT] syntax (defaulting to tcp/80)" CRLF, stderr);
   } else {
     *colon = '\0';
 
-    aret->portnum = (unsigned short)strtoul(++colon, NULL, 0x0A);
+    vcmd->portnum = (unsigned short)strtoul(++colon, NULL, 0x0A);
 
     if(errno == ERANGE) {
       perror("strtoul");
@@ -189,15 +192,15 @@ COMMAND_LINE *parse_cmdline(const int ac, const char **av) {
     }
   }
 
-  if(aret->secure) {
-    if(aret->portnum == 80u)
+  if(vcmd->secure) {
+    if(vcmd->portnum == 80u)
       fputs("*~* Attempting TLS handshake on TCP port 80..is this intentional?" CRLF, stderr);
   } else {
-    if(aret->portnum == 443u)
+    if(vcmd->portnum == 443u)
       fputs("*~* Attempting TCP connection without TLS on TCP port 443..is this intentional?" CRLF, stderr);
   }
 
-  HTTP_REQUEST *htrequ = &(aret->request);
+  HTTP_REQUEST *htrequ = &(vcmd->request);
 
   if(test_arguments(++optind, ac))
     usage_desc(*av);
@@ -225,7 +228,7 @@ COMMAND_LINE *parse_cmdline(const int ac, const char **av) {
 
   PROTOCOL_VERSION *prover = unpack_protover(av[optind]);
 
-  memcpy(&(aret->protocol), prover, sizeof*prover);
+  memcpy(&(vcmd->protocol), prover, sizeof*prover);
 
   free(prover);
 
@@ -236,5 +239,5 @@ COMMAND_LINE *parse_cmdline(const int ac, const char **av) {
       error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
   }
 
-  return aret;
+  return;
 }

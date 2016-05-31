@@ -25,6 +25,25 @@ int tls_send_request(BIO *abio, const HTTP_REQUEST *sreq) {
       fputs(amsg, vcmd->output);
   }
 
+  if(sreq->hdrs) {
+    register PLINKED_LIST lsp = sreq->hdrs;
+
+    do { 
+      BIO_puts(abio, lsp->header);
+      BIO_puts(abio, CRLF);
+
+      if(!vcmd->brief)
+        fprintf(stdout, "%s" CRLF, lsp->header);
+
+      if(vcmd->output) {
+        fputs(lsp->header, vcmd->output);
+        fputs(CRLF, vcmd->output);
+      }
+
+      lsp = lsp->next;
+    } while(lsp);
+  }
+
   BIO_puts(abio, CRLF);
 
   if(!vcmd->brief) 

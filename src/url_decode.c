@@ -16,15 +16,15 @@ char *url_decode(const char *input) {
   output = working;
 	
 	do {
-		if(*input == '%')
-		{
-			char buffer[3] = { input[1], input[2], 0 };
+    if(*input == '%') {
+			const char buffer[3] = { input[1], input[2], 0 };
+
 			*working++ = strtol(buffer, NULL, 16);
 			input += 3;
 
       continue;
 		}
-	  
+	
     *working++ = *input++;
 	} while(*input);
 
@@ -33,28 +33,28 @@ char *url_decode(const char *input) {
 	return output;
 }
 
-#if 0
-int main(int argc, char **argv) 
-{
-    if(argc > 1)
-    {
-        char *input = argv[1];
-        char *decoded = url_decode(input);
-        printf("%s",decoded);
-    	free(decoded);
+#ifdef TEST_DRIVE
+int main(int argc, char **argv) {
+  if(argc > 1) {
+    char *input = argv[1];
+    char *decoded = url_decode(input);
+
+    fputs(decoded, stdout);
+    free(decoded);
+  } else {
+    char *line = NULL;
+    size_t size;
+
+    while(getline(&line, &size, stdin) != -1) {
+      char *decoded = url_decode(line);
+
+      fputs(decoded, stdout);
+      free(decoded);
     }
-    else
-    {
-        char *line = NULL;
-        size_t size;
-        while(getline(&line, &size, stdin) != -1)
-        {
-        	char *decoded = url_decode(line);
-            printf("%s", decoded);
-            free(decoded);
-        }
-    }
-    
-    return 0;
+  }
+
+  putchar('\n');
+
+  return 0;
 }
 #endif

@@ -1,11 +1,5 @@
 #include"fjorge.h"
 
-static void tls_error(const char *afunc) {
-  perror(afunc);
-
-  exit(EXIT_FAILURE);
-}
-
 BIO *tls_connect(const char *ahost, const unsigned short aport) { 
   SSL_CTX *ctx = NULL;
   BIO *web = NULL;
