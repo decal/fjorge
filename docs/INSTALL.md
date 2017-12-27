@@ -1,3 +1,3 @@
 cmake .
 make
-./fjorge -h
+./fjorge -?

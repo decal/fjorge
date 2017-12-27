@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+rm -fr ./CMakeCache.txt ./CMakeFiles ./cmake_install.cmake ./Makefile
+
+exit 0
