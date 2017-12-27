@@ -37,7 +37,8 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
   if(res <= 0)
     tls_error("BIO_set_conn_hostname");
 
-  res = BIO_set_conn_int_port(web, &aport);
+  /* res = BIO_set_conn_int_port(web, &aport); */
+  res = BIO_set_conn_port(web, &aport);
 
   if(res <= 0)
     tls_error("BIO_set_conn_int_port");

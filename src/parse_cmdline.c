@@ -34,7 +34,7 @@ static void show_version(const char *restrict av0) {
   fputs("Crypto Library =>", stdout);
 
   for(i = 0;i < 5;++i) {
-    const char *ver = SSLeay_version(sslver_consts[i]);
+    const char *ver = OpenSSL_version(sslver_consts[i]);
 
     switch(i) { 
       case 0:

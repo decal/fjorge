@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12.2)
 project(fjorge)
-SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O3 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
+SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
 SET(CFLAGS CMAKE_C_FLAGS)
 add_definitions(-DDBNG_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
 

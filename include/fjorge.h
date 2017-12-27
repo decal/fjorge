@@ -101,7 +101,7 @@ unsigned int add_header(char *restrict);
 char *base64_decode(const char *);
 char *base64_encode(const char *);
 unsigned int basic_auth(const char *);
-void make_hostnames(const char *restrict *const, const char *restrict *const, unsigned int);
+signed char **make_hostnames(char **, const char *restrict *const, size_t);
 void tls_error(const char *);
 FILE *send_request(const int, const HTTP_REQUEST *);
 size_t recv_response(FILE *);

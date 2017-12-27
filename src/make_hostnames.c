@@ -1,8 +1,8 @@
 #include"fjorge.h"
  
-signed char **make_hostnames(const char *restrict *const tdoms, const char *restrict *const hosts, size_t hsize) {
-	register size_t k = 0, len = hsize, dcnt = 0;
-  static signed char **aret = NULL;
+signed char **make_hostnames(char **tdoms, const char *restrict *const hosts, size_t hsize) {
+	register size_t k = 0, len = hsize, dcnt = 0, i = 0;
+  static unsigned char **aret = NULL;
 
   /* Due to the conditional return statement below, this function will always *
    * return the value it computed during its first invocation for the entirety *
