@@ -1,8 +1,6 @@
 #include"fjorge.h"
 
-volatile sig_atomic_t signal_status;
-
-_Noreturn void signal_handler(const int sign) {
+void signal_handler(const int sign) {
   const char *restrict signame = NULL;
 
   print_trace();

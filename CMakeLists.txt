@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12.2)
 project(fjorge)
-SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
+# SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
+SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
 SET(CFLAGS CMAKE_C_FLAGS)
+SET(CMAKE_LIBRARY_PATH_FLAG "-L/usr/local/lib")
+SET(ENV{LD_LIBRARY_PATH} "/usr/local/lib:$ENV{LD_LIBRARY_PATH}")
 add_definitions(-DDBNG_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
 
 add_executable(
@@ -35,5 +38,10 @@ add_executable(
 
 find_library(SSL ssl)
 find_library(CRYPTO crypto)
+link_directories(/usr/local/lib)
+add_library(ssl SHARED IMPORTED)
+set_property(TARGET ssl PROPERTY IMPORTED_LOCATION /usr/local/lib/libssl.so)
+add_library(crypto SHARED IMPORTED)
+set_property(TARGET crypto PROPERTY IMPORTED_LOCATION /usr/local/lib/libcrypto.so)
 target_link_libraries(fjorge ssl crypto)
 install(TARGETS fjorge DESTINATION bin)

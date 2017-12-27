@@ -2,7 +2,7 @@
  
 signed char **make_hostnames(char **tdoms, const char *restrict *const hosts, size_t hsize) {
 	register size_t k = 0, len = hsize, dcnt = 0, i = 0;
-  static unsigned char **aret = NULL;
+  static signed char **aret = NULL;
 
   /* Due to the conditional return statement below, this function will always *
    * return the value it computed during its first invocation for the entirety *
@@ -38,7 +38,7 @@ signed char **make_hostnames(char **tdoms, const char *restrict *const hosts, si
       perror("malloc");
 
     for (i = 0; i < hsize; i++) {
-      register char *p = aret[k];
+      register char *p = (char *)aret[k];
 
       if(i == len) {
         strcpy(p, tdoms[k]);
