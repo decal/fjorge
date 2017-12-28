@@ -111,6 +111,7 @@ int tcp_connect(const char *, const unsigned short);
 int tcp_close(const int);
 BIO *tls_connect(const char *, const unsigned short);
 void info_callback(const SSL *, int, int);
+int verify_callback(int, X509_STORE_CTX *);
 void ssl_error(const SSL *, const int, const char *);
 void tls_error(const char *);
 size_t tls_recv_response(BIO *);

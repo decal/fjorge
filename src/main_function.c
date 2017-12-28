@@ -39,37 +39,39 @@ int main(int argc, char *argv[], char *envp[]) {
 
   if(vcmd->secure) {
     register unsigned int k = 0;
+
     for(k = 0;k < 2;k++)
-    if(tls_send_request(atls, &(vcmd->request))) {
-      rlen = tls_recv_response(atls);
+      if(tls_send_request(atls, &(vcmd->request))) {
+        rlen = tls_recv_response(atls);
 
-      switch(rlen) {
-        case 0:
-        case -1:
-        case -2:
-          tls_error("BIO_read");
+        switch(rlen) {
+          case 0:
+          case -1:
+          case -2:
+            tls_error("BIO_read");
 
-          break;
-        default:
-          if(vcmd->debug)
-            fprintf(stderr, "*** Received %lu bytes via encrypted TLS connection.." CRLF, rlen);
+            break;
+          default:
+            if(vcmd->debug)
+              fprintf(stderr, "*** Received %lu bytes via encrypted TLS connection.." CRLF, rlen);
+        }
       }
-    }
   } else {
     register unsigned int x = 0;
+
     for(x = 0;x < 2;x++) {
-    anfp = send_request(asfd, &(vcmd->request));
+      anfp = send_request(asfd, &(vcmd->request));
 
-    if(!anfp) {
-      fputs("*** Unable to send plaintext request!" CRLF, stderr);
+      if(!anfp) {
+        fputs("*** Unable to send plaintext request!" CRLF, stderr);
 
-      exit(EX_IOERR);
-    }
+        exit(EX_IOERR);
+      }
 
-    rlen = recv_response(anfp);
+      rlen = recv_response(anfp);
 
-    if(vcmd->debug)
-      fprintf(stderr, "*** Received %lu bytes via plaintext TCP connection.." CRLF, rlen);
+      if(vcmd->debug)
+        fprintf(stderr, "*** Received %lu bytes via plaintext TCP connection.." CRLF, rlen);
     }
   }
 

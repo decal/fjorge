@@ -36,6 +36,7 @@ add_executable(
   src/url_decode.c
   src/url_encode.c
   src/usage_desc.c
+  src/verify_callback.c
   include/fjorge.h)
 
 find_library(SSL ssl)

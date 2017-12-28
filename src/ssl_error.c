@@ -47,6 +47,7 @@ void ssl_error(const SSL *ssl, const int ret, const char *afn) {
       break;
   }
 
+  fputs(SSL_state_string_long(ssl), stderr);
   fputc('\n', stderr);
 
   return;
