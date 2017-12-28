@@ -24,6 +24,7 @@
 #include<arpa/inet.h>
 #include<getopt.h>
 #include<openssl/bio.h>
+#include<openssl/err.h>
 #include<openssl/ssl.h>
 #include<openssl/x509.h>
 #include<openssl/opensslv.h>
@@ -84,6 +85,7 @@ typedef struct command_line {
   char *hostnam;
   unsigned int portnum;
   char *scan_ports; /* scan ports via Host: header */
+  char *servername; /* SNI (Server Name Indication) */
 } COMMAND_LINE, *PCOMMAND_LINE;
 
 typedef struct http_response {
@@ -108,6 +110,8 @@ size_t recv_response(FILE *);
 int tcp_connect(const char *, const unsigned short);
 int tcp_close(const int);
 BIO *tls_connect(const char *, const unsigned short);
+void info_callback(SSL *, int, int);
+void ssl_error(const SSL *, const int, const char *);
 void tls_error(const char *);
 size_t tls_recv_response(BIO *);
 int tls_send_request(BIO *, const HTTP_REQUEST *);

@@ -13,6 +13,7 @@ add_executable(
   src/array_length.c
   src/basic_auth.c
   src/base64_encode.c
+  src/info_callback.c
   src/main_function.c
   src/make_hostnames.c
   src/pack_protover.c
@@ -24,6 +25,7 @@ add_executable(
   src/recv_response.c
   src/send_request.c
   src/signal_handler.c
+  src/ssl_error.c
   src/tcp_close.c
   src/tcp_connect.c
   src/tls_connect.c

@@ -32,6 +32,8 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
 
   BIO_get_ssl(web, ssl);
 
+  SSL_set_info_callback(ssl, set_callback);
+
   res = BIO_set_conn_hostname(web, ahost);
 
   if(res <= 0)
@@ -53,7 +55,10 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
   if(res <= 0)
     tls_error("SSL_set_cipher_list");
 
-  res = SSL_set_tlsext_host_name(ssl, ahost);
+  if(vcmd->servername)
+    res = SSL_set_tlsext_host_name(ssl, vcmd->servername);
+  else 
+    res = SSL_set_tlsext_host_name(ssl, ahost);
 
   if(res <= 0)
     tls_error("SSL_set_tlsext_host_name");
@@ -63,10 +68,18 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
   if(!out)
     tls_error("BIO_new_fp"); */
 
+  ERR_clear_error();
+
+  sleep(2);
+
   res = BIO_do_connect(web);
 
+  sleep(2);
+
   if(res <= 0)
-    tls_error("BIO_do_connect");
+    ssl_error(ssl, res, "BIO_do_connect");
+
+  fprintf(stderr, "p_ssl state: %s\n", SSL_state_string_long(ssl));
 
   res = SSL_do_handshake(ssl);
 

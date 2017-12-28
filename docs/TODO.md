@@ -1,3 +1,4 @@
+make documentation more understandable for noobz like "elih"
 add support for getopt_long command line flags
 make usage similar to lwp-request, curl, wbox, netcat, etc. ?
 implement WebDAV and other methods 

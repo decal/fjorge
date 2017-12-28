@@ -107,7 +107,7 @@ static void show_version(const char *restrict av0) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while ((opt = getopt(ac, (char*const*)av, "bsdvB:Vh:o:?")) != -1) {
+  while ((opt = getopt(ac, (char*const*)av, "bsdvB:Vh:o:n:?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -136,6 +136,13 @@ static void show_version(const char *restrict av0) {
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         basic_auth(vcmd->basic);
+
+        break;
+      case 'n':
+        vcmd->servername = strdup(optarg);
+
+        if(!vcmd->servername)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         break;
       case 'o':
