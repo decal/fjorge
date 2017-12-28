@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-void info_callback(SSL *s, int where, int ret) {
+void info_callback(const SSL *s, int where, int ret) {
   const char *str = NULL;
   const int w = where & ~SSL_ST_MASK;
 

@@ -7,8 +7,9 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
   register int res = 0;
 
   SSL_library_init();
+  SSL_load_error_strings();
 
-  const SSL_METHOD *method = SSLv23_method();
+  const SSL_METHOD *method = SSLv23_client_method();
 
   if(!method)
     tls_error("SSLv23_method");
@@ -18,7 +19,11 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
   if(!ctx)
     tls_error("SSL_CTX_new");
 
-  SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
+  SSL_CTX_set_info_callback(ctx, info_callback);
+
+  SSL_CTX_set_default_verify_paths(ctx);
+
+  /* SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL); */
 
   /* const long flags = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_COMPRESSION; */
   const long flags = 0;
@@ -31,8 +36,6 @@ BIO *tls_connect(const char *ahost, const unsigned short aport) {
     tls_error("BIO_new_ssl_connect");
 
   BIO_get_ssl(web, ssl);
-
-  SSL_set_info_callback(ssl, set_callback);
 
   res = BIO_set_conn_hostname(web, ahost);
 
