@@ -1,3 +1,2 @@
-cmake .
-make
-./fjorge -?
+Install instructions for fjorge
+===============================

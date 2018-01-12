@@ -1,25 +1,24 @@
 #include"fjorge.h"
 
-size_t tls_recv_response(BIO *sockfp) {
+size_t recv_tls(BIO *sockfp) {
   static char rbuf[BUFSIZ] = { 0x00 };
-  register size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
-  register char *abuf = rbuf;
-  char *sptr = NULL;
+  size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
+  char *abuf = rbuf, *sptr = NULL;
 
   if(!sockfp) {
-    fputs("*** Encountered NULL FILE pointer before attempting to read plaintext response!\n", stderr);
+    fjputs_verbose("Encountered NULL FILE pointer before attempting to read plaintext response!");
 
     exit(EX_IOERR);
   }
 
   do
-    bret = BIO_read(sockfp, rbuf, sizeof rbuf);
+    bret = BIO_read(sockfp, abuf, sizeof abuf);
   while(BIO_should_retry(sockfp));
 
   if(bret <= 0)
     return bret;
 
-  abuf = strtok_r(rbuf, "\r\n", &sptr);
+  abuf = strtok_r(rbuf, CRLF, &sptr);
 
   while(abuf) {
     if(!strncasecmp(abuf, "content-length:", 15)) {
@@ -28,11 +27,13 @@ size_t tls_recv_response(BIO *sockfp) {
       cnln = atoi(++c1);
     }
 
-    if(!strcmp(abuf, "\r\n"))
+    if(!strcmp(abuf, CRLF))
       flag = 1;
 
-    fputs(abuf, stdout);
-    fputs(CRLF, stdout);
+    if(asiz) {
+      fputs(BADGE_RECV, stdout);
+      puts(abuf);
+    }
 
     if(!asiz && vcmd->verbose) {
       register char *const s1 = strchr(abuf, ' ');
@@ -41,14 +42,14 @@ size_t tls_recv_response(BIO *sockfp) {
         register char *const s2 = strchr(s1 + 1, ' ');
 
         if(s2) {
-          register long unsigned int acod = 0;
+          register unsigned long int acod = strtoul(s1, NULL, 10);
 
           *s2 = '\0';
    
-          acod = strtoul(s1, NULL, 10);
+          acod = strtoul(s2, NULL, 10);
 
-          if(errno != ERANGE)
-            fprintf(stderr, "*%%* HTTP response code: %lu\n", acod);
+          if(errno != ERANGE && vcmd->verbose)
+            fjprintf_verbose("HTTP response code: %lu", acod);
         }
       }
     }
@@ -69,7 +70,7 @@ size_t tls_recv_response(BIO *sockfp) {
         break;
     }
 
-    abuf = strtok_r(NULL, "\r\n", &sptr);
+    abuf = strtok_r(NULL, CRLF, &sptr);
   }
 
   return bret;

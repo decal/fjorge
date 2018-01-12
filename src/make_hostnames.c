@@ -47,7 +47,7 @@ signed char **make_hostnames(char **tdoms, const char *restrict *const hosts, si
       } else {
         strcpy(p, hosts[i]);
 
-        p+= strlen(hosts[i]);
+        p += strlen(hosts[i]);
 
         strcpy(p, ".");
 

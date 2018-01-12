@@ -1,9 +1,11 @@
 __To-Do List__
 ==========
 
-* make documentation more understandable for n00blet llamahs like Elih
+* make sure each option passed to `getopt()` is implemented
 
-* make verbosity/debugging printf's consistent with prepended character sequences
+* document each command line option in the user's guide
+
+* make documentation more understandable for n00blet llamahs like Elih
 
 * command line option for selecting preferred cipher sets
 

@@ -1,9 +1,9 @@
 #include"fjorge.h"
 
-char *base64_encode (const char *asc_str) {
+char *encode_base64 (const char *asc_str) {
   assert(asc_str);
 
-  const int asc_len = strlen(asc_str);
+  const size_t asc_len = strlen(asc_str);
   register size_t b64_len = (((asc_len + 2) / 3) * 4);
   char *b64_str = malloc (++b64_len);
 
@@ -20,9 +20,9 @@ char *base64_encode (const char *asc_str) {
 
 #ifdef TEST_DRIVE
 int main(void) {
-  char astr[]="abc123";
+  char astr[] = "abc123";
 
-  puts(base64_encode(astr));
+  puts(encode_base64(astr));
 
   return 0;
 }

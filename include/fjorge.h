@@ -4,12 +4,22 @@
 #define _FJORGE_H _BSD_SOURCE
 #define NDEBUG _FJORGE_H
 /* #define _FORITY_SOURCE NDEBUG  */
+
 #define CRLF "\r\n"
+
 #define HTT1 "HTTP/1.0"
 #define HT11 "HTTP/1.1"
 #define HT09 "HTTP/0.9"
 #define HT20 "HTTP/2.0"
 #define HTT2 HT20
+
+#define BADGE_VERBOSE "*%* "
+#define BADGE_DEBUG "*~* "
+#define BADGE_ERROR "*!* "
+#define BADGE_CALLBACK "*-* "
+#define BADGE_SEND "*<* "
+#define BADGE_RECV "*>* "
+
 /* #define PREFER_CIPHERS "ALL:!MEDIUM:!LOW:!MD5:!SHA1:!RC4:!EXPORT" */
 #define PREFER_CIPHERS "ALL"
 
@@ -20,13 +30,14 @@
 #include<sysexits.h>
 #include<signal.h>
 #include<assert.h>
-#include<netinet/in.h>
 #include<arpa/inet.h>
 #include<getopt.h>
+#include<openssl/asn1t.h>
 #include<openssl/bio.h>
-#include<openssl/err.h>
+#include<openssl/err.h> 
 #include<openssl/ssl.h>
 #include<openssl/x509.h>
+#include<openssl/x509v3.h> 
 #include<openssl/opensslv.h>
 #include<openssl/crypto.h>
 #include<sys/types.h>
@@ -35,6 +46,7 @@
 #include<dirent.h>
 #include<unistd.h>
 #include<netdb.h>
+#include<linux/in.h>
 #include<execinfo.h>
 #include<ctype.h>
 #include<errno.h>
@@ -46,21 +58,21 @@ typedef struct protocol_version {
   char *major;
   char *delim;
   char *minor;
-} PROTOCOL_VERSION, *PPROTOCOL_VERSION;
+} PROTOCOL_VERSION, *PPROTOCOL_VERSION, **PPPROTOCOL_VERSION;
 
 typedef struct linked_list {
   char *header;
   struct linked_list *next;
-} LINKED_LIST, *PLINKED_LIST;
+} LINKED_LIST, *PLINKED_LIST, **PPLINKED_LIST;
 
 typedef struct http_request {
   char *verb;
   char *path;
   char *vers;
   char *host;
-  struct linked_list*hdrs;
+  struct linked_list *hdrs;
   char *body;
-} HTTP_REQUEST, *PHTTP_REQUEST;
+} HTTP_REQUEST, *PHTTP_REQUEST, **PPHTTP_REQUEST;
 
 typedef struct command_line {
   char *namein;
@@ -70,6 +82,8 @@ typedef struct command_line {
   char *namedir;
   DIR *dirfiles; /* requests stored in files */
   unsigned int brief;
+  unsigned int fips;
+  unsigned int callback;
   unsigned int verbose;
   unsigned int debug;
   unsigned int secure;
@@ -86,7 +100,7 @@ typedef struct command_line {
   unsigned int portnum;
   char *scan_ports; /* scan ports via Host: header */
   char *servername; /* SNI (Server Name Indication) */
-} COMMAND_LINE, *PCOMMAND_LINE;
+} COMMAND_LINE, *PCOMMAND_LINE, **PPCOMMAND_LINE;
 
 typedef struct http_response {
   unsigned short code;
@@ -94,28 +108,28 @@ typedef struct http_response {
   char *vers;
   char **hdrs;
   char *body;
-} HTTP_RESPONSE, *PHTTP_RESPONSE;
+} HTTP_RESPONSE, *PHTTP_RESPONSE, **PPHTTP_RESPONSE;
 
 extern COMMAND_LINE *vcmd;
 
 _Noreturn void signal_handler(const int);
 unsigned int add_header(char *restrict);
-char *base64_decode(const char *);
-char *base64_encode(const char *);
-unsigned int basic_auth(const char *);
+char *decode_base64(const char *);
+char *encode_base64(const char *);
+unsigned int auth_basic(const char *);
 signed char **make_hostnames(char **, const char *restrict *const, size_t);
-void tls_error(const char *);
+void error_tls(const char *);
 FILE *send_request(const int, const HTTP_REQUEST *);
 size_t recv_response(FILE *);
-int tcp_connect(const char *, const unsigned short);
-int tcp_close(const int);
-BIO *tls_connect(const char *, const unsigned short);
+int connect_tcp(const char *, const unsigned short);
+int close_tcp(const int);
+BIO *connect_tls(const char *, const unsigned short);
 void info_callback(const SSL *, int, int);
 int verify_callback(int, X509_STORE_CTX *);
-void ssl_error(const SSL *, const int, const char *);
-void tls_error(const char *);
-size_t tls_recv_response(BIO *);
-int tls_send_request(BIO *, const HTTP_REQUEST *);
+void error_ssl(const SSL *, const int, const char *);
+void error_tls(const char *);
+size_t recv_tls(BIO *);
+int send_tls(BIO *, const HTTP_REQUEST *);
 PROTOCOL_VERSION *unpack_protover(const char *);
 char *pack_protover(const PROTOCOL_VERSION *);
 void parse_cmdline(const int, const char **);
@@ -124,4 +138,14 @@ size_t array_length(char **);
 signed char **print_hostnames(const char *restrict *const, const char *restrict *const, size_t);
 void print_options(FILE *);
 void print_trace(void);
+int fjprintf_callback(const char *, ...);
+int fjprintf_debug(const char *, ...);
+int fjprintf_error(const char *, ...);
+int fjprintf_verbose(const char *, ...);
+int fjputs_callback(const char *);
+int fjputs_debug(const char *);
+int fjputs_error(const char *);
+int fjputs_verbose(const char *);
+void cbprint_cnname(const char *label, const X509_NAME *const);
+void cbprint_sanname(const char *label, const X509 *const);
 #endif

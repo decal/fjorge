@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-void tls_error(const char *afunc) {
+void error_tls(const char *afunc) {
   perror(afunc);
 
   exit(EXIT_FAILURE);

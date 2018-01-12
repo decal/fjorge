@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+declare -i acnt=0
+
+while true
+  do if [ ! -f ./CMakeLists.txt ]
+    then cd ..
+  else
+    break
+  fi
+done
+
+make clean
+
+for afile in ./CMakeCache.txt ./CMakeFiles ./cmake_install.cmake ./Makefile
+  do if [ -f $afile ] 
+    then acnt+=1 
+    rm -fv -- $afile
+  fi
+done
+
+exit 0

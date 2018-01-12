@@ -1,14 +1,16 @@
 #include"fjorge.h"
 
-int tls_send_request(BIO *abio, const HTTP_REQUEST *sreq) {
+int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
   static char amsg[BUFSIZ] = { 0x00, };
 
   sprintf(amsg, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
 
-  BIO_puts(abio, amsg);
+  BIO_puts(abio, amsg); 
 
-  if(!vcmd->brief)
+  if(!vcmd->brief) {
+    fputs(BADGE_SEND, stdout);
     fputs(amsg, stdout);
+  }
 
   if(vcmd->output)
     fputs(amsg, vcmd->output);
@@ -18,8 +20,10 @@ int tls_send_request(BIO *abio, const HTTP_REQUEST *sreq) {
 
     BIO_puts(abio, amsg);
     
-    if(!vcmd->brief)
+    if(!vcmd->brief) {
+      fputs(BADGE_SEND, stdout);
       fputs(amsg, stdout);
+    }
 
     if(vcmd->output)
       fputs(amsg, vcmd->output);
@@ -32,8 +36,10 @@ int tls_send_request(BIO *abio, const HTTP_REQUEST *sreq) {
       BIO_puts(abio, lsp->header);
       BIO_puts(abio, CRLF);
 
-      if(!vcmd->brief)
-        fprintf(stdout, "%s" CRLF, lsp->header);
+      if(!vcmd->brief) {
+        fputs(BADGE_SEND, stdout);
+        puts(lsp->header);
+      }
 
       if(vcmd->output) {
         fputs(lsp->header, vcmd->output);
@@ -46,8 +52,10 @@ int tls_send_request(BIO *abio, const HTTP_REQUEST *sreq) {
 
   BIO_puts(abio, CRLF);
 
-  if(!vcmd->brief) 
-    fputs(CRLF, stdout);
+  if(!vcmd->brief) {
+    fputs(BADGE_SEND, stdout);
+    puts("");
+  }
 
   if(vcmd->output)
     fputs(CRLF, vcmd->output);

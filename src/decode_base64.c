@@ -1,9 +1,9 @@
 #include"fjorge.h"
 
-char *base64_decode (const char *asc_str) {
+char *decode_base64 (const char *asc_str) {
   assert(asc_str);
 
-  const int asc_len = strlen(asc_str);
+  const size_t asc_len = strlen(asc_str);
   register size_t b64_len = (((asc_len + 2) / 3) * 4);
   char *b64_str = malloc (++b64_len);
 
@@ -19,11 +19,11 @@ char *base64_decode (const char *asc_str) {
 }
 
 #ifdef TEST_DRIVE
-/* gcc -DTEST_DRIVE -I../include -o base64_decode base64_decode.c -lcrypto -lssl */
+/* gcc -DTEST_DRIVE -I../include -o decode_base64 decode_base64.c -lcrypto -lssl */
 int main(void) {
-  char astr[]="YWJj";
+  char astr[] = "YWJj";
 
-  puts(base64_decode(astr));
+  puts(decode_base64(astr));
 
   return 0;
 }

@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-char *url_decode(const char *input) {
+char *decode_url(const char *input) {
 	int input_length = strlen(input);
 	size_t output_length = input_length;
 	char *working = NULL, *output = NULL;
@@ -37,7 +37,7 @@ char *url_decode(const char *input) {
 int main(int argc, char **argv) {
   if(argc > 1) {
     char *input = argv[1];
-    char *decoded = url_decode(input);
+    char *decoded = decode_url(input);
 
     fputs(decoded, stdout);
     free(decoded);
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     size_t size;
 
     while(getline(&line, &size, stdin) != -1) {
-      char *decoded = url_decode(line);
+      char *decoded = decode_url(line);
 
       fputs(decoded, stdout);
       free(decoded);

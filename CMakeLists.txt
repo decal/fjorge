@@ -11,30 +11,40 @@ add_executable(
 	fjorge
   src/add_header.c
   src/array_length.c
-  src/basic_auth.c
-  src/base64_encode.c
+  src/auth_basic.c
+  src/encode_base64.c
+  src/fjputs_callback.c
+  src/fjprintf_callback.c
+  src/fjputs_debug.c
+  src/fjprintf_debug.c
+  src/fjputs_error.c
+  src/fjprintf_error.c
+  src/fjputs_verbose.c
+  src/fjprintf_verbose.c
   src/info_callback.c
   src/main_function.c
   src/make_hostnames.c
   src/pack_protover.c
   src/parse_cmdline.c
-  src/permute_strings.c
+  src/cbprint_cnname.c
+  src/error_callback.c
+  src/cbprint_sanname.c
   src/print_hostnames.c
   src/print_options.c
   src/print_trace.c
   src/recv_response.c
   src/send_request.c
   src/signal_handler.c
-  src/ssl_error.c
-  src/tcp_close.c
-  src/tcp_connect.c
-  src/tls_connect.c
-  src/tls_error.c
-  src/tls_recv_response.c
-  src/tls_send_request.c
+  src/error_ssl.c
+  src/close_tcp.c
+  src/connect_tcp.c
+  src/connect_tls.c
+  src/error_tls.c
+  src/recv_tls.c
+  src/send_tls.c
   src/unpack_protover.c
-  src/url_decode.c
-  src/url_encode.c
+  src/decode_url.c
+  src/encode_url.c
   src/usage_desc.c
   src/verify_callback.c
   include/fjorge.h)

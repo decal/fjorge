@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-void ssl_error(const SSL *ssl, const int ret, const char *afn) {
+void error_ssl(const SSL *ssl, const int ret, const char *afn) {
   const int res = SSL_get_error(ssl, ret);
 
   fputs(afn, stderr);
@@ -48,7 +48,7 @@ void ssl_error(const SSL *ssl, const int ret, const char *afn) {
   }
 
   fputs(SSL_state_string_long(ssl), stderr);
-  fputc('\n', stderr);
+  fputs(CRLF, stderr);
 
   return;
 }

@@ -5,9 +5,9 @@ signed char **print_hostnames(const char *restrict *const doms, const char *rest
 
   for (i = 0, --len; i <= len; i++) 
     if(i == len) 
-      fprintf(stdout, "%s\n", doms[i]);
+      puts(doms[i]);
     else
-      fprintf(stdout, "%s.", x[i]);
+      printf("%s.", x[i]);
 
   return NULL;
 }

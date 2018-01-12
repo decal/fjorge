@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-unsigned int basic_auth(const char *b64str) {
+unsigned int auth_basic(const char *b64str) {
   const char *const auth_head = "Authorization: Basic ";
   char *restrict aret = malloc(1 + strlen(auth_head) + strlen(b64str));
 
@@ -16,7 +16,7 @@ unsigned int basic_auth(const char *b64str) {
 int main(void) {
   const unsigned char *userpass="admin:admin";
   const size_t alen = strlen((const char*)userpass);
-  const char *b64_userpass = base64_encode(userpass, alen);
+  const char *b64_userpass = encode_base64(userpass, alen);
 
   puts(b64_userpass);
 

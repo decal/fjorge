@@ -2,7 +2,7 @@
 
 static int test_arguments(const int optind, const int ac) {
   if(optind >= ac) {
-    fputs("*** Expected argument after options" CRLF, stderr);
+    fjputs_error("Expected argument after options");
 
     return 1;
   }
@@ -14,21 +14,21 @@ static void show_version(const char *restrict av0) {
   static int sslver_consts[] = { SSLEAY_VERSION, SSLEAY_CFLAGS, SSLEAY_BUILT_ON, SSLEAY_PLATFORM, SSLEAY_DIR };
   register signed int i = 0;
 
-  fputs(CRLF "=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=" CRLF, stdout);
-  fputs("= fj0rge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> =" CRLF, stdout);
-  fputs("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=" CRLF CRLF, stdout);
-  fputs("GitHub repository: https://github.com/decal/fj0rge" CRLF, stdout);
+  puts("\n=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
+  puts("= fj0rge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> =");
+  puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=\n");
+  puts("GitHub repository: https://github.com/decal/fj0rge");
 
 #ifdef __STD_C_VERSION__
-  fprintf(stdout, "ANSI C Standard Library Version: %d" CRLF, __STD_C_VERSION__);
+  printf("ANSI C Standard Library Version: %d" CRLF, __STD_C_VERSION__);
 #endif
 
 #ifdef _POSIX_VERSION
-  fprintf(stdout, "POSIX Version: %ld" CRLF, _POSIX_VERSION);
+  printf("POSIX Version: %ld" CRLF, _POSIX_VERSION);
 #endif
 
 #ifdef _POSIX2_VERSION
-  fprintf(stdout, "POSIX.2 Version: %ld" CRLF, _POSIX2_VERSION);
+  printf("POSIX.2 Version: %ld" CRLF, _POSIX2_VERSION);
 #endif
 
   fputs("Crypto Library =>", stdout);
@@ -38,33 +38,33 @@ static void show_version(const char *restrict av0) {
 
     switch(i) { 
       case 0:
-        fprintf(stdout, " (Version) %s", ver);
+        printf(" (Version) %s", ver);
 
         break;
       case 1:
-        fprintf(stdout, " (Compile Flags) %s", ver);
+        printf(" (Compile Flags) %s", ver);
 
         break;
       case 2:
-        fprintf(stdout, " (Built On) %s", ver);
+        printf(" (Built On) %s", ver);
 
         break;
       case 3:
-        fprintf(stdout, " (Platform) %s", ver);
+        printf(" (Platform) %s", ver);
 
         break;
       case 4:
-        fprintf(stdout, " (Directory) %s", ver);
+        printf(" (Directory) %s", ver);
 
         break;
     }
   }
 
 #ifdef ZLIB_VERSION
-  fprintf(stdout, CRLF "ZLib Version: %s" CRLF, ZLIB_VERSION);
+  printf(CRLF "ZLib Version: %s" CRLF, ZLIB_VERSION);
 #endif
 
-  fputs(CRLF, stdout);
+  puts("");
   
   exit(EX_OK);
 }
@@ -98,19 +98,23 @@ static void show_version(const char *restrict av0) {
   return;
 } */
 
- void parse_cmdline(const int ac, const char **av) {
+void parse_cmdline(const int ac, const char **av) {
   int opt = 0;
   char *colon = NULL;
 
-  vcmd = calloc(1, sizeof*vcmd);
+  vcmd = calloc(1, sizeof *vcmd);
 
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while ((opt = getopt(ac, (char*const*)av, "bsdvB:Vh:o:n:?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, "bfsdvB:Vh:o:n:?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
+
+        break;
+      case 'f':
+        vcmd->fips++;
 
         break;
       case 's':
@@ -135,7 +139,7 @@ static void show_version(const char *restrict av0) {
         if(!vcmd->basic)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        basic_auth(vcmd->basic);
+        auth_basic(vcmd->basic);
 
         break;
       case 'n':
@@ -152,8 +156,8 @@ static void show_version(const char *restrict av0) {
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         if(!access(vcmd->nameout, F_OK))
-          fprintf(stderr, "*** There is a pre-existing file at the desired output path %s (appending to it)" CRLF, vcmd->nameout);
-
+          fjprintf_error("There is a pre-existing file at the desired output path %s (appending to it)", vcmd->nameout);
+          
         vcmd->output = fopen(optarg, "a");
 
         if(!vcmd->output)
@@ -187,7 +191,7 @@ static void show_version(const char *restrict av0) {
     vcmd->portnum = 80u;
 
     if(vcmd->debug)
-      fputs("*-* Port number not provided in HOST[:PORT] syntax (defaulting to tcp/80)" CRLF, stderr);
+      fjputs_debug("Port number not provided in HOST[:PORT] syntax (defaulting to tcp/80)");
   } else {
     *colon = '\0';
 
@@ -195,16 +199,17 @@ static void show_version(const char *restrict av0) {
 
     if(errno == ERANGE) {
       perror("strtoul");
+
       usage_desc(*av);
     }
   }
 
   if(vcmd->secure) {
     if(vcmd->portnum == 80u)
-      fputs("*~* Attempting TLS handshake on TCP port 80..is this intentional?" CRLF, stderr);
+      fjputs_debug("Attempting TLS handshake on TCP port 80..is this intentional?");
   } else {
     if(vcmd->portnum == 443u)
-      fputs("*~* Attempting TCP connection without TLS on TCP port 443..is this intentional?" CRLF, stderr);
+      fjputs_debug("Attempting TCP connection without TLS on TCP port 443..is this intentional?");
   }
 
   HTTP_REQUEST *htrequ = &(vcmd->request);
@@ -235,7 +240,7 @@ static void show_version(const char *restrict av0) {
 
   PROTOCOL_VERSION *prover = unpack_protover(av[optind]);
 
-  memcpy(&(vcmd->protocol), prover, sizeof*prover);
+  memcpy(&(vcmd->protocol), prover, sizeof *prover);
 
   free(prover);
 

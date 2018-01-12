@@ -14,24 +14,22 @@ int main(int argc, char *argv[], char *envp[]) {
   signal(SIGILL,  signal_handler);
   signal(SIGPIPE, signal_handler);
 
-  parse_cmdline(argc, (const char**)argv);
+  parse_cmdline(argc, (const char **)argv);
 
   if(vcmd->debug)
     print_options(stderr);
 
   if(vcmd->secure) {
-    atls = tls_connect(vcmd->hostnam, vcmd->portnum);
+    atls = connect_tls(vcmd->hostnam, vcmd->portnum);
 
-    if(vcmd->verbose) 
-      fprintf(stderr, "*%%* TLS Connection to %s:%hu" CRLF, vcmd->hostnam, vcmd->portnum);
+    fjprintf_verbose("TLS Connection to %s:%hu", vcmd->hostnam, vcmd->portnum);
   } else {
-    asfd = tcp_connect(vcmd->hostnam, vcmd->portnum);
+    asfd = connect_tcp(vcmd->hostnam, vcmd->portnum);
 
-    if(vcmd->verbose) 
-      fprintf(stderr, "*%%* TCP Connection to %s:%hu" CRLF, vcmd->hostnam, vcmd->portnum);
+    fjprintf_verbose("TCP Connection to %s:%hu", vcmd->hostnam, vcmd->portnum);
 
     if(asfd < 0) {
-      fprintf(stderr, "*** Unable to connect to %s:%hu" CRLF, vcmd->hostnam, vcmd->portnum);
+      fjprintf_error("Unable to connect to %s:%hu", vcmd->hostnam, vcmd->portnum); 
 
       goto _fin;
     }
@@ -40,44 +38,46 @@ int main(int argc, char *argv[], char *envp[]) {
   if(vcmd->secure) {
     register unsigned int k = 0;
 
-    for(k = 0;k < 2;k++)
-      if(tls_send_request(atls, &(vcmd->request))) {
-        rlen = tls_recv_response(atls);
+    /** TODO: pipelining/persistent connections **/
+    /* for(k = 0;k < 2;k++) */
+      if(send_tls(atls, &(vcmd->request))) {
+        rlen = recv_tls(atls);
 
         switch(rlen) {
           case 0:
           case -1:
+            break;
           case -2:
-            tls_error("BIO_read");
+            error_tls("BIO_read");
 
             break;
           default:
-            if(vcmd->debug)
-              fprintf(stderr, "*** Received %lu bytes via encrypted TLS connection.." CRLF, rlen);
+            fjprintf_debug("Received %lu bytes via encrypted TLS connection..", rlen);
+
+            break;
         }
       }
   } else {
     register unsigned int x = 0;
 
-    for(x = 0;x < 2;x++) {
+    /* for(x = 0;x < 2;x++) { */
       anfp = send_request(asfd, &(vcmd->request));
 
       if(!anfp) {
-        fputs("*** Unable to send plaintext request!" CRLF, stderr);
+        fjputs_error("Unable to send plaintext request!");
 
         exit(EX_IOERR);
       }
 
       rlen = recv_response(anfp);
 
-      if(vcmd->debug)
-        fprintf(stderr, "*** Received %lu bytes via plaintext TCP connection.." CRLF, rlen);
-    }
+      fjprintf_debug("Received %lu bytes via plaintext TCP connection..", rlen);
+    /* } */
   }
 
 _fin:
   if(error_message_count > 0) /* make this an optional atexit_handler #ifdef DEBUG */
-    fprintf(stderr, "*** %u error messages!" CRLF, error_message_count);
+    fjprintf_debug("*** %u error messages!", error_message_count);
 
   exit(EXIT_SUCCESS);
 }

@@ -9,7 +9,7 @@ FILE *send_request(const int sock, const HTTP_REQUEST *sreq) {
   fprintf(sockfp, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
 
   if(!vcmd->brief)
-    fprintf(stdout, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
+    fprintf(stdout, BADGE_SEND "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
 
   if(vcmd->output)
     fprintf(vcmd->output, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
@@ -18,7 +18,7 @@ FILE *send_request(const int sock, const HTTP_REQUEST *sreq) {
     fprintf(sockfp, "Host: %s" CRLF, sreq->host);
 
     if(!vcmd->brief)
-      fprintf(stdout, "Host: %s" CRLF, sreq->host);
+      fprintf(stdout, BADGE_SEND "Host: %s" CRLF, sreq->host);
 
     if(vcmd->output)
       fprintf(vcmd->output, "Host: %s" CRLF, sreq->host);
@@ -31,8 +31,10 @@ FILE *send_request(const int sock, const HTTP_REQUEST *sreq) {
       fputs(lsp->header, sockfp);
       fputs(CRLF, sockfp);
 
-      if(!vcmd->brief)
-        fprintf(stdout, "%s" CRLF, lsp->header);
+      if(!vcmd->brief) {
+        fputs(BADGE_SEND, stdout);
+        puts(lsp->header);
+      }
 
       if(vcmd->output) {
         fputs(lsp->header, vcmd->output);
@@ -45,8 +47,10 @@ FILE *send_request(const int sock, const HTTP_REQUEST *sreq) {
 
   fputs(CRLF, sockfp);
 
-  if(!vcmd->brief)
-    fputs(CRLF, stdout);
+  if(!vcmd->brief) {
+    fputs(BADGE_SEND, stdout);
+    puts("");
+  }
 
   if(vcmd->output)
     fputs(CRLF, vcmd->output);

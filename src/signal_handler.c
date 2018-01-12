@@ -34,7 +34,7 @@ void signal_handler(const int sign) {
       signame = "UNKNOWN!";
   }
 
-  fprintf(stderr, "*!* Caught signal identifier: %s numeric constant: %d" CRLF, signame, sign);
+  fjprintf_error("Caught signal identifier: %s numeric constant: %d", signame, sign);
 
   quick_exit(EXIT_FAILURE);
 }
