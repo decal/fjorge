@@ -35,7 +35,6 @@ add_executable(
   src/recv_response.c
   src/send_request.c
   src/signal_handler.c
-  src/error_ssl.c
   src/close_tcp.c
   src/connect_tcp.c
   src/connect_tls.c

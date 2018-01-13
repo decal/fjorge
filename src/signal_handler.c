@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 void signal_handler(const int sign) {
-  const char *restrict signame = NULL;
+  const char *signame = "(null)";
 
   print_trace();
 
@@ -34,7 +34,7 @@ void signal_handler(const int sign) {
       signame = "UNKNOWN!";
   }
 
-  fjprintf_error("Caught signal identifier: %s numeric constant: %d", signame, sign);
+  fjprintf_error("Caught signal: %s(%d)", signame, sign);
 
   quick_exit(EXIT_FAILURE);
 }

@@ -30,7 +30,6 @@ void print_options(FILE *fptr) {
   fprintf(fptr, " multiply = %u", vcmd->multiply);
   fprintf(fptr, " casing = %u", vcmd->casing);
   fprintf(fptr, " inject = %u", vcmd->inject);
-  fprintf(fptr, " remove = %u", vcmd->remove);
   fprintf(fptr, " hostnam = %s", vcmd->hostnam);
   fprintf(fptr, " portnum = %d\n", vcmd->portnum);
 

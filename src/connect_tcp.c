@@ -3,7 +3,7 @@
 int connect_tcp(const char *ahost, const unsigned short aport) {
   register signed int filedesc = 0;
   struct sockaddr_in inetaddr = { 0x00 }, connaddr = { 0x00, };
-  struct addrinfo *inetinfo = calloc(1, sizeof inetinfo);
+  struct addrinfo *inetinfo = calloc(1, sizeof *inetinfo);
 
   if(!inetinfo)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));

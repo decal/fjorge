@@ -107,10 +107,17 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, "bfsdvB:Vh:o:n:?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, "bc:dfh:o:n:svyB:V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
+
+        break;
+      case 'c':
+        vcmd->cipher = strdup(optarg);
+
+        if(!vcmd->cipher)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         break;
       case 'f':
@@ -122,11 +129,16 @@ void parse_cmdline(const int ac, const char **av) {
 
         break;
       case 'd':
+        vcmd->callback++; /** TODO: make separate CLI flag for callback? **/
         vcmd->debug++;
 
         break;
       case 'v':
         vcmd->verbose++;
+
+        break;
+      case 'y':
+        vcmd->verify++;
 
         break;
       case 'V':
@@ -188,10 +200,17 @@ void parse_cmdline(const int ac, const char **av) {
   colon = strchr(vcmd->hostnam, ':');
 
   if(!colon) {
-    vcmd->portnum = 80u;
+    if(vcmd->secure) {
+      vcmd->portnum = 443u;
 
-    if(vcmd->debug)
-      fjputs_debug("Port number not provided in HOST[:PORT] syntax (defaulting to tcp/80)");
+      if(vcmd->debug) 
+        fjputs_debug("Port number not provided in HOST[:PORT] syntax (tcp/443 is the default)");
+    } else {
+      vcmd->portnum = 80u;
+
+      if(vcmd->debug)
+        fjputs_debug("Port number not provided in HOST[:PORT] syntax (tcp/80 is the default)");
+    }
   } else {
     *colon = '\0';
 

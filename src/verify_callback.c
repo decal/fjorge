@@ -53,7 +53,10 @@ static HostnameValidationResult matches_subject_alternative_name(const char *hos
     }
   }
 
-  sk_GENERAL_NAME_pop_free(san_names, GENERAL_NAMES_free);
+  fprintf(stderr, "san_names_sb: %d\n", san_names_sb);
+
+  // sk_GENERAL_NAME_pop_free(san_names, GENERAL_NAMES_free);
+  sk_GENERAL_NAME_pop_free(san_names, GENERAL_NAME_free);
 
   return result;
 }
@@ -110,7 +113,7 @@ int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
 
   /* validate_hostname("localhost", cert); */
 
-  fjprintf_callback("verify_callback (depth=%d)(preverify=%d)\n", depth, preverify_ok);
+  fjprintf_callback("verify_callback (depth=%d)(preverify=%d)", depth, preverify_ok);
 
   cbprint_cnname("Issuer (cn)", iname);
   cbprint_cnname("Subject (cn)", sname);
@@ -118,12 +121,15 @@ int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if(!depth) 
     cbprint_sanname("Subject (san)", cert);
 
+  error_callback(err, "verify_callback");
+
   if(!preverify_ok) {
     switch(err) {
       case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
         puts(" Error = X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY");
 
         break;
+        
       case X509_V_ERR_CERT_UNTRUSTED:
         puts(" Error = X509_V_ERR_CERT_UNTRUSTED");
 

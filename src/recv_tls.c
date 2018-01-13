@@ -12,13 +12,13 @@ size_t recv_tls(BIO *sockfp) {
   }
 
   do
-    bret = BIO_read(sockfp, abuf, sizeof abuf);
+    bret = BIO_read(sockfp, rbuf, sizeof rbuf);
   while(BIO_should_retry(sockfp));
 
   if(bret <= 0)
     return bret;
 
-  abuf = strtok_r(rbuf, CRLF, &sptr);
+  abuf = strtok_r(rbuf, CRLF, &sptr); 
 
   while(abuf) {
     if(!strncasecmp(abuf, "content-length:", 15)) {
@@ -27,8 +27,9 @@ size_t recv_tls(BIO *sockfp) {
       cnln = atoi(++c1);
     }
 
+   
     if(!strcmp(abuf, CRLF))
-      flag = 1;
+      flag = 1; 
 
     if(asiz) {
       fputs(BADGE_RECV, stdout);
@@ -46,7 +47,7 @@ size_t recv_tls(BIO *sockfp) {
 
           *s2 = '\0';
    
-          acod = strtoul(s2, NULL, 10);
+          acod = strtoul(s1, NULL, 10);
 
           if(errno != ERANGE && vcmd->verbose)
             fjprintf_verbose("HTTP response code: %lu", acod);
@@ -70,7 +71,7 @@ size_t recv_tls(BIO *sockfp) {
         break;
     }
 
-    abuf = strtok_r(NULL, CRLF, &sptr);
+    abuf = strtok_r(NULL, CRLF, &sptr); 
   }
 
   return bret;

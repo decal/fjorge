@@ -1,16 +1,17 @@
 #include"fjorge.h"
 
 int fjprintf_error(const char *fmt, ...) {
-  register int ret = 0;
+  register int ret = fputs(BADGE_ERROR, stderr);
+
   va_list arg;
 
   va_start(arg, fmt);
 
-  ret += fputs(BADGE_ERROR, stderr);
   ret += vfprintf(stderr, fmt, arg);
-  ret += fputs(CRLF, stderr);
 
   va_end(arg);
+
+  ret += fputs(CRLF, stderr);
 
   return ret;
 }

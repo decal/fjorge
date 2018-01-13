@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-size_t array_length(char **anarr) {
+const size_t array_length(char **anarr) {
   register char *const *pp = anarr;
   register size_t ll = 0;
 

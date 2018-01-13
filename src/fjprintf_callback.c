@@ -1,16 +1,17 @@
 #include"fjorge.h"
 
 int fjprintf_callback(const char *fmt, ...) {
-  register int ret = 0;
+  register int ret = fputs(BADGE_CALLBACK, stderr);
+
   va_list arg;
 
   va_start(arg, fmt);
 
-  ret += fputs(BADGE_CALLBACK, stdout);
-  ret += vfprintf(stdout, fmt, arg);
-  ret += fputs(CRLF, stdout);
+  ret += vfprintf(stderr, fmt, arg);
 
   va_end(arg);
+
+  ret += fputs(CRLF, stderr);
 
   return ret;
 }

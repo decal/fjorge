@@ -12,9 +12,10 @@ done
 
 make clean
 
-for afile in ./CMakeCache.txt ./CMakeFiles ./cmake_install.cmake ./Makefile
+for afile in ./CMakeCache.txt ./CMakeFiles ./cmake_install.cmake ./Makefile ./gmon.out ./strace.out
   do if [ -f $afile ] 
     then acnt+=1 
+
     rm -fv -- $afile
   fi
 done

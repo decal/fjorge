@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-int fjputs_verbose(const char *emsg) {
+int fjputs_verbose(const char *const emsg) {
   register int ret = 0;
 
   if(vcmd->verbose) {

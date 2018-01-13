@@ -1,6 +1,8 @@
 __To-Do List__
 ==========
 
+* put `assert()` invocations where appropriate
+
 * make sure each option passed to `getopt()` is implemented
 
 * document each command line option in the user's guide
