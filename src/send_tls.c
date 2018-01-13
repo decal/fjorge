@@ -5,7 +5,7 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
 
   sprintf(amsg, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
 
-  BIO_puts(abio, amsg); 
+  register int slen = BIO_puts(abio, amsg); 
 
   if(!vcmd->brief) {
     fputs(BADGE_SEND, stdout);
@@ -18,7 +18,7 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
   if(sreq->host) {
     sprintf(amsg, "Host: %s" CRLF, sreq->host);
 
-    BIO_puts(abio, amsg);
+    slen += BIO_puts(abio, amsg);
     
     if(!vcmd->brief) {
       fputs(BADGE_SEND, stdout);
@@ -33,8 +33,8 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
     register PLINKED_LIST lsp = sreq->hdrs;
 
     do { 
-      BIO_puts(abio, lsp->header);
-      BIO_puts(abio, CRLF);
+      slen += BIO_puts(abio, lsp->header);
+      slen += BIO_puts(abio, CRLF);
 
       if(!vcmd->brief) {
         fputs(BADGE_SEND, stdout);
@@ -50,15 +50,15 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
     } while(lsp);
   }
 
-  BIO_puts(abio, CRLF);
+  slen += BIO_puts(abio, CRLF);
 
   if(!vcmd->brief) {
     fputs(BADGE_SEND, stdout);
-    puts("");
+    fputs(CRLF, stdout);
   }
 
   if(vcmd->output)
     fputs(CRLF, vcmd->output);
 
-  return 1;
+  return slen;
 }

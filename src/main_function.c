@@ -39,28 +39,33 @@ int main(int argc, char *argv[], char *envp[]) {
     register unsigned int k = 0;
 
     /** TODO: pipelining/persistent connections **/
-    for(k = 0;k < 2;k++) 
+    /* for(k = 0;k < 2;k++)  */
       if(send_tls(atls, &(vcmd->request))) {
-        rlen = recv_tls(atls);
+        do {
+          rlen = recv_tls(atls);
 
-        switch(rlen) {
-          case 0:
-          case -1:
-            break;
-          case -2:
-            error_tls(NULL, rlen, "BIO_read");
+          switch(rlen) {
+            case 0:
+            case -1:
+              break;
+            case -2:
+              error_tls(NULL, rlen, "BIO_read");
 
-            break;
-          default:
-            fjprintf_debug("Received %lu bytes via encrypted TLS connection..", rlen);
+              break;
+            default:
+              fjprintf_debug("Received %lu bytes via encrypted TLS connection..", rlen);
 
+              break;
+          }
+
+          if(rlen <= 0)
             break;
-        }
+        } while(1);
       }
   } else {
     register unsigned int x = 0;
 
-    for(x = 0;x < 2;x++) { 
+    /* for(x = 0;x < 2;x++) {  */
       anfp = send_request(asfd, &(vcmd->request));
 
       if(!anfp) {
@@ -72,7 +77,7 @@ int main(int argc, char *argv[], char *envp[]) {
       rlen = recv_response(anfp);
 
       fjprintf_debug("Received %lu bytes via plaintext TCP connection..", rlen);
-    }
+    /* } */
   }
 
 _fin:

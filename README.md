@@ -12,7 +12,7 @@ For example:
 
 `./fjorge bing.com:443 MYTEST . HT/9.9 -s`
 
-<pre>
+```
 *<* MYTEST . HT/9.9
 *<*
 *>* Content-Type: text/html; charset=us-ascii
@@ -27,6 +27,6 @@ For example:
 *>* </BODY></HTML>
 *<* MYTEST . HT/9.9
 *<*
-</pre>
+```
 
 - This tool is written in C11 and has been tested on Ubuntu 16.04.3 LTS.

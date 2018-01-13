@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 size_t recv_tls(BIO *sockfp) {
-  static char rbuf[BUFSIZ] = { 0x00 };
+  char rbuf[BUFSIZ] = { 0x00 };
   size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
   char *abuf = rbuf, *sptr = NULL;
 
