@@ -1,7 +1,11 @@
 fjorge user's guide
 ===================
 
-1.
+* Attacks
+  -A xss,x-forwarded-for:
+  -A x-forwarded-for:
+  -A xss
+  -A x-forwarded-for:,xss
 
 2. 
 

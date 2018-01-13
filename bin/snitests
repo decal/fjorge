@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-./fjorge $1 GET / HTTP/1.1 -svdn localhost
-./fjorge $1 GET / HTTP/1.1 -svdn 127.0.0.1
-./fjorge $1 GET / HTTP/1.1 -svdn ''
-./fjorge $1 GET / HTTP/1.1 -svdn bing.com
+./fjorge $1 GET / HTTP/1.1 -n localhost
+./fjorge $1 GET / HTTP/1.1 -n 127.0.0.1
+./fjorge $1 GET / HTTP/1.1 -n 192.168.1.1
+./fjorge $1 GET / HTTP/1.1 -n google.com
+./fjorge $1 GET / HTTP/1.1 -n ''
 
 exit 0

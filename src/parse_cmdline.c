@@ -108,7 +108,7 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, "bc:dfh:o:n:svyzB:V?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, "a:bc:dfh:o:n:svyzD::V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -157,7 +157,7 @@ void parse_cmdline(const int ac, const char **av) {
         show_version(*av);
 
         break;
-      case 'B':
+      case 'a':
         vcmd->basic = strdup(optarg);
 
         if(!vcmd->basic)
@@ -201,6 +201,10 @@ void parse_cmdline(const int ac, const char **av) {
 
         break;
       case 'C': /* CIDR block scan */
+      case 'D': /* duplicate headers */
+        dup_headers(optarg);
+
+        break;
       case 'M': /* method scan */
       case 'P': /* port scan */
       case '?':
@@ -254,41 +258,50 @@ void parse_cmdline(const int ac, const char **av) {
 
   HTTP_REQUEST *htrequ = &(vcmd->request);
 
-  if(test_arguments(++optind, ac))
-    usage_desc(*av);
+  if(++optind == ac) {
+    htrequ->verb = "GET";
+    htrequ->path = "/";
+    htrequ->vers = "HTTP/1.1";
+  } else {
+    htrequ->verb = strdup(av[optind]);
 
-  htrequ->verb = strdup(av[optind]);
-
-  if(!htrequ->verb)
-    error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-  if(test_arguments(++optind, ac))
-    usage_desc(*av);
-
-  htrequ->path = strdup(av[optind]);
-
-  if(!htrequ->path)
-    error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-  if(test_arguments(++optind, ac))
-    usage_desc(*av);
-
-  htrequ->vers = strdup(av[optind]);
-
-  if(!htrequ->vers)
-    error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-  PROTOCOL_VERSION *prover = unpack_protover(av[optind]);
-
-  memcpy(&(vcmd->protocol), prover, sizeof *prover);
-
-  free(prover);
-
-  if(av[++optind]) {
-    htrequ->host = strdup(av[optind]);
-
-    if(!htrequ->host)
+    if(!htrequ->verb)
       error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+    if(++optind == ac) {
+      htrequ->path = "/";
+      htrequ->vers = "HTTP/1.1";
+    } else {
+      htrequ->path = strdup(av[optind]);
+
+      if(!htrequ->path)
+        error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+      if(++optind == ac) {
+        htrequ->vers = "HTTP/1.1";
+      } else {
+        if(test_arguments(optind, ac))
+          usage_desc(*av);
+
+        htrequ->vers = strdup(av[optind]);
+
+        if(!htrequ->vers)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+        PROTOCOL_VERSION *prover = unpack_protover(av[optind]);
+
+        memcpy(&(vcmd->protocol), prover, sizeof *prover);
+
+        free(prover);
+
+        if(av[++optind]) {
+          htrequ->host = strdup(av[optind]);
+
+          if(!htrequ->host)
+            error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+        }
+      }
+    }
   }
 
   return;

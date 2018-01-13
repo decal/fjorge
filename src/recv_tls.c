@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 size_t recv_tls(BIO *sockfp) {
-  char rbuf[BUFSIZ] = { 0x00 };
+  char rbuf[BUFSIZ * 10] = { 0x00 };
   size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
   char *abuf = rbuf, *sptr = NULL;
 
@@ -11,12 +11,12 @@ size_t recv_tls(BIO *sockfp) {
     exit(EX_IOERR);
   }
 
-  do
-    bret = BIO_read(sockfp, rbuf, sizeof rbuf);
-  while(BIO_should_retry(sockfp));
+  do {
+    const int xret = BIO_read(sockfp, rbuf, sizeof rbuf);
 
-  if(bret <= 0)
-    return bret;
+    if(xret > 0)
+      bret += xret;
+  } while(BIO_should_retry(sockfp));
 
   abuf = strtok_r(rbuf, CRLF, &sptr); 
 

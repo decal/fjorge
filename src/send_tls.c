@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
-  static char amsg[BUFSIZ] = { 0x00, };
+  char amsg[BUFSIZ] = { 0x00, };
 
   sprintf(amsg, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
 

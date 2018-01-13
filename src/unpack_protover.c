@@ -2,7 +2,7 @@
 
 PROTOCOL_VERSION *unpack_protover(const char *pv) {
   register char *aptr = NULL, *dlm0 = NULL, *dlm1 = NULL, achr = '\0';
-  PROTOCOL_VERSION *aret = calloc(1, sizeof*aret);
+  PROTOCOL_VERSION *aret = calloc(1, sizeof *aret);
 
   if(!aret)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));

@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 size_t recv_response(FILE *sockfp) {
-  static char abuf[BUFSIZ] = { 0x00 };
+  char abuf[BUFSIZ] = { 0x00 };
   register size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0;
 
   if(!sockfp) {

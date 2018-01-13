@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12.2)
 project(fjorge)
 # SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
-SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
+SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O1 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
 SET(CFLAGS CMAKE_C_FLAGS)
 SET(CMAKE_LIBRARY_PATH_FLAG "-L/usr/local/lib")
 SET(ENV{LD_LIBRARY_PATH} "/usr/local/lib:$ENV{LD_LIBRARY_PATH}")
@@ -12,6 +12,7 @@ add_executable(
   src/add_header.c
   src/array_length.c
   src/auth_basic.c
+  src/dup_headers.c
   src/encode_base64.c
   src/fjputs_callback.c
   src/fjprintf_callback.c
@@ -24,6 +25,8 @@ add_executable(
   src/info_callback.c
   src/main_function.c
   src/make_hostnames.c
+  src/match_cn.c
+  src/match_san.c
   src/pack_protover.c
   src/parse_cmdline.c
   src/cbprint_cnname.c
@@ -45,6 +48,7 @@ add_executable(
   src/decode_url.c
   src/encode_url.c
   src/usage_desc.c
+  src/validate_hostname.c
   src/verify_callback.c
   include/fjorge.h)
 

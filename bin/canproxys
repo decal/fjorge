@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Can proxy HTTPS?
+
+if [ ! $1 ]
+  then echo "usage: $0 HOST"
+
+  exit 1
+fi
+
+./fjorge $1:443 'GET' 'https://www.google.com/' 'HTTP/1.1'
+./fjorge $1:443 'GET' 'http://www.google.com/' 'HTTP/1.1'
+./fjorge $1:443 'GET' '/' 'HTTP/1.1' 'https://www.google.com/'
+./fjorge $1:443 'GET' '/' 'HTTP/1.1' 'http://www.google.com/'
+./fjorge $1:443 'GET' '/' 'HTTP/1.1' 'www.google.com'
+./fjorge $1:443 'GET' '/' 'HTTP/1.1' 'www.google.com:80'
+./fjorge $1:443 'GET' '/' 'HTTP/1.1' 'www.google.com:443'
+
+exit 0

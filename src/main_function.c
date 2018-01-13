@@ -58,9 +58,8 @@ int main(int argc, char *argv[], char *envp[]) {
               break;
           }
 
-          if(rlen <= 0)
-            break;
-        } while(1);
+          break;
+        } while(BIO_should_retry(atls));
       }
   } else {
     register unsigned int x = 0;

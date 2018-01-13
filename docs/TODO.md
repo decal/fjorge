@@ -1,6 +1,10 @@
 __To-Do List__
 ==========
 
+* request body crafting, i.e. https://www.exploit-db.com/exploits/22106/
+
+* output formatting similar to `curl -o`
+
 * fix `mydata_index` in `verify_callback.c`
 
 * implement HTTP/2.0

@@ -64,6 +64,20 @@
 #include<error.h>
 #include<zlib.h>
 
+typedef enum {
+  MatchFound,
+  MatchNotFound,
+  NoSANPresent,
+  MalformedCertificate,
+  Error
+} HostnameValidationResult;
+
+typedef struct {
+  int verbose_mode;
+  int verify_depth;
+  int always_continue;
+} mydata_t;
+
 typedef struct protocol_version {
   char *proto;
   char *major;
@@ -107,6 +121,7 @@ typedef struct command_line {
   unsigned int verify; /* verify server-side certificate? */
   PROTOCOL_VERSION protocol;
   HTTP_REQUEST request;
+  char *attack; /* Specify attack such as XSS, SQL injection, etc. -A xss,header */
   char *basic; /* HTTP Basic authentication */
   char *cipher; /* preferred cipher set */
   char *hostnam; /* host name */
@@ -138,6 +153,8 @@ int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
 void error_callback(const unsigned long, const char *const);
 void info_callback(const SSL *, int, int);
+HostnameValidationResult match_cn(const char *, const X509 *);
+HostnameValidationResult match_san(const char *, const X509 *);
 int verify_callback(int, X509_STORE_CTX *);
 void error_tls(const SSL *, const int, const char *const);
 size_t recv_tls(BIO *);
