@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+./fjorge bing.com:443 GET / HTTP/1.1 -svd
+
+exit 0

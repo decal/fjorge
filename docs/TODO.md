@@ -1,15 +1,15 @@
 __To-Do List__
 ==========
 
-* put `assert()` invocations where appropriate
+* fix `mydata_index` in `verify_callback.c`
+
+* implement HTTP/2.0
 
 * make sure each option passed to `getopt()` is implemented
 
 * document each command line option in the user's guide
 
 * make documentation more understandable for n00blet llamahs like Elih
-
-* command line option for selecting preferred cipher sets
 
 * expand upon code within callback functions 
 

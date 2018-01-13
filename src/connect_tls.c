@@ -19,7 +19,6 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
 
   OpenSSL_add_all_algorithms();
   SSL_load_error_strings();
-  OPENSSL_config(NULL);
 
   /* const SSL_METHOD *method = SSLv23_client_method(); */
   /* const SSL_METHOD *method = SSLv3_client_method(); */
@@ -29,21 +28,21 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   const SSL_METHOD *method = TLS_client_method();
 
   if(!method)
-    error_tls(ssl, 0, "SSLv23_method");
+    error_tls(ssl, 0, "TLS_client_method");
 
   ctx = SSL_CTX_new(method);
 
   if(!ctx)
     error_tls(ssl, 0, "SSL_CTX_new");
 
-  if(vcmd->debug)
+  if(vcmd->verify)
     SSL_CTX_set_info_callback(ctx, info_callback);
 
   SSL_CTX_set_default_verify_paths(ctx); 
 
   if(vcmd->verify)
-    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
-    /* SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);  */
+    SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);   
+    /* SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL); */
   else
     SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL); 
 
@@ -74,13 +73,20 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(!ssl)
     error_tls(ssl, 0, "BIO_get_ssl");
 
-  if(vcmd->cipher) 
+  if(vcmd->cipher) {
     res = SSL_set_cipher_list(ssl, vcmd->cipher);
-  else
+
+    if(res <= 0) {
+      fjputs_error("Incorrect ciphers! Read manual page ciphers (1ssl) ..");
+
+      exit(EX_USAGE);
+    }
+  } else {
     res = SSL_set_cipher_list(ssl, PREFER_CIPHERS);
 
-  if(res <= 0)
-    error_tls(ssl, res, "SSL_set_cipher_list");
+    if(res <= 0)
+      error_tls(ssl, res, "SSL_set_cipher_list");
+  }
 
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
   if(vcmd->servername)

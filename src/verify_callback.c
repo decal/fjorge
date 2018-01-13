@@ -6,7 +6,7 @@ typedef struct {
   int always_continue;
 } mydata_t;
 
-static int mydata_index;
+static int mydata_index = 1;
 
 typedef enum {
   MatchFound,
@@ -53,7 +53,7 @@ static HostnameValidationResult matches_subject_alternative_name(const char *hos
     }
   }
 
-  fprintf(stderr, "san_names_sb: %d\n", san_names_sb);
+  // fprintf(stderr, "san_names_sb: %d\n", san_names_sb);
 
   // sk_GENERAL_NAME_pop_free(san_names, GENERAL_NAMES_free);
   sk_GENERAL_NAME_pop_free(san_names, GENERAL_NAME_free);
@@ -111,7 +111,7 @@ int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   const X509_NAME *iname = cert ? X509_get_issuer_name(cert) : NULL;
   const X509_NAME *sname = cert ? X509_get_subject_name(cert) : NULL;
 
-  /* validate_hostname("localhost", cert); */
+  validate_hostname("localhost", cert); 
 
   fjprintf_callback("verify_callback (depth=%d)(preverify=%d)", depth, preverify_ok);
 
@@ -121,7 +121,7 @@ int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   if(!depth) 
     cbprint_sanname("Subject (san)", cert);
 
-  error_callback(err, "verify_callback");
+  // error_callback(err, "verify_callback");
 
   if(!preverify_ok) {
     switch(err) {

@@ -15,20 +15,21 @@ static void show_version(const char *restrict av0) {
   register signed int i = 0;
 
   puts("\n=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
-  puts("= fj0rge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> =");
+  puts("= fjorge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> =");
   puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=\n");
-  puts("GitHub repository: https://github.com/decal/fj0rge");
+  puts("GitHub repository: https://github.com/decal/fjorge");
+  puts("");
 
 #ifdef __STD_C_VERSION__
-  printf("ANSI C Standard Library Version: %d" CRLF, __STD_C_VERSION__);
+  printf("ANSI C Standard Library Version: %d" CRLF CRLF, __STD_C_VERSION__);
 #endif
 
 #ifdef _POSIX_VERSION
-  printf("POSIX Version: %ld" CRLF, _POSIX_VERSION);
+  printf("POSIX Version: %ld" CRLF CRLF, _POSIX_VERSION);
 #endif
 
 #ifdef _POSIX2_VERSION
-  printf("POSIX.2 Version: %ld" CRLF, _POSIX2_VERSION);
+  printf("POSIX.2 Version: %ld" CRLF CRLF, _POSIX2_VERSION);
 #endif
 
   fputs("Crypto Library =>", stdout);
@@ -60,12 +61,12 @@ static void show_version(const char *restrict av0) {
     }
   }
 
+  puts("");
+
 #ifdef ZLIB_VERSION
-  printf(CRLF "ZLib Version: %s" CRLF, ZLIB_VERSION);
+  printf(CRLF "ZLib Version: %s" CRLF CRLF, ZLIB_VERSION);
 #endif
 
-  puts("");
-  
   exit(EX_OK);
 }
 
@@ -121,7 +122,14 @@ void parse_cmdline(const int ac, const char **av) {
 
         break;
       case 'f':
+#ifdef OPENSSL_FIPS
         vcmd->fips++;
+
+        printf("FIPS: %d\n", FIPS_mode());
+
+        if(!FIPS_mode_set(1))
+          error_at_line(1, errno, __FILE__, __LINE__, "FIPS_mode_set: %s", strerror(errno));
+#endif
 
         break;
       case 's':
@@ -151,7 +159,15 @@ void parse_cmdline(const int ac, const char **av) {
         if(!vcmd->basic)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        auth_basic(vcmd->basic);
+        if(!strchr(vcmd->basic, ':')) {
+          fjputs_error("Basic authentication string is missing colon!");
+
+          exit(EX_USAGE);
+        }
+
+        const char *encbas = encode_base64(vcmd->basic);
+
+        auth_basic(encbas);
 
         break;
       case 'n':
