@@ -10,7 +10,7 @@ requests such as non-standard methods, URI's that don't start with a slash, etc.
 
 For example:
 
-`./fjorge bing.com:443 MYTEST . HT/9.9 -s`
+`./fjorge bing.com:443 MYTEST . HT/9.9`
 
 ```
 *<* MYTEST . HT/9.9
@@ -25,8 +25,6 @@ For example:
 *>* <BODY><h2>Bad Request</h2>
 *>* <hr><p>HTTP Error 400. The request is badly formed.</p>
 *>* </BODY></HTML>
-*<* MYTEST . HT/9.9
-*<*
 ```
 
 - This tool is written in C11 and has been tested on Ubuntu 16.04.3 LTS.
