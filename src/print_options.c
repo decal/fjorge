@@ -1,6 +1,8 @@
 #include"fjorge.h"
 
 void print_options(FILE *fptr) {
+  assert(fptr);
+
   fputs("*** OPTIONS: headers = ", fptr);
 
   if(vcmd->request.hdrs) {

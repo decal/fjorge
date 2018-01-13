@@ -126,10 +126,10 @@ typedef struct http_response {
 extern COMMAND_LINE *vcmd;
 
 noreturn void signal_handler(const int);
-unsigned int add_header(char *restrict);
+void add_header(char *restrict);
 char *decode_base64(const char *);
 char *encode_base64(const char *);
-unsigned int auth_basic(const char *);
+void auth_basic(const char *);
 signed char **make_hostnames(char **, const char *restrict *const, size_t);
 FILE *send_request(const int, const HTTP_REQUEST *);
 size_t recv_response(FILE *);

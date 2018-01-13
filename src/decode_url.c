@@ -1,7 +1,9 @@
 #include"fjorge.h"
 
 char *decode_url(const char *input) {
-	int input_length = strlen(input);
+  assert(input);
+
+	const int input_length = strlen(input);
 	size_t output_length = input_length;
 	char *working = NULL, *output = NULL;
 

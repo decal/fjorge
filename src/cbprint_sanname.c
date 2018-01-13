@@ -1,6 +1,8 @@
 #include"fjorge.h"
 
 void cbprint_sanname(const char *label, const X509 *const cert) {
+  assert(label);
+
   int success = 0;
   unsigned char *utf8 = NULL;
     

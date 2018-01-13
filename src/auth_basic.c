@@ -1,6 +1,8 @@
 #include"fjorge.h"
 
-unsigned int auth_basic(const char *b64str) {
+void auth_basic(const char *b64str) {
+  assert(b64str);
+
   const char *const auth_head = "Authorization: Basic ";
   char *restrict aret = malloc(1 + strlen(auth_head) + strlen(b64str));
 
@@ -8,8 +10,10 @@ unsigned int auth_basic(const char *b64str) {
     error_at_line(1, errno, __FILE__, __LINE__, "basic_auth: %s", strerror(errno));
 
   sprintf(aret, "%s%s", auth_head, b64str);
-  
-  return add_header(aret);
+ 
+  add_header(aret);
+
+  return;
 }
 
 #if 0

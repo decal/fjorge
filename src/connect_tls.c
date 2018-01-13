@@ -1,6 +1,8 @@
 #include"fjorge.h"
 
 BIO *connect_tls(const char *ahost, const unsigned short aport) { 
+  assert(ahost);
+
   SSL_CTX *ctx = NULL;
   BIO *web = NULL;
   SSL *ssl = NULL;
@@ -20,6 +22,9 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   OPENSSL_config(NULL);
 
   /* const SSL_METHOD *method = SSLv23_client_method(); */
+  /* const SSL_METHOD *method = SSLv3_client_method(); */
+  /* const SSL_METHOD *method = TLSv1_client_method(); */
+  /* const SSL_METHOD *method = TLSv1_1_client_method(); */
   /* const SSL_METHOD *method = TLSv1_2_client_method(); */
   const SSL_METHOD *method = TLS_client_method();
 

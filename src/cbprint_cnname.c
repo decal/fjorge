@@ -1,6 +1,8 @@
 #include"fjorge.h"
 
 void cbprint_cnname(const char *label, const X509_NAME *const name) {
+  assert(label);
+
   register int suc = 0;
   unsigned char *utf = NULL;
 

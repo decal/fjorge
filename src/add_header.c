@@ -1,7 +1,6 @@
 #include"fjorge.h"
 
-unsigned int add_header(char *restrict aline) {
-  unsigned int ret = 1;
+void add_header(char *restrict aline) {
   PLINKED_LIST lsp = vcmd->request.hdrs;
 
   if(!vcmd->request.hdrs) {
@@ -16,7 +15,7 @@ unsigned int add_header(char *restrict aline) {
     if(!lsp->header)
       error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
     
-    return ret;
+    return;
   }
 
   while(lsp->next)
@@ -33,5 +32,5 @@ unsigned int add_header(char *restrict aline) {
   if(!lsp->header)
     error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-  return ret;
+  return;
 }
