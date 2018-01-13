@@ -108,7 +108,7 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, "bc:dfh:o:n:svyB:V?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, "bc:dfh:o:n:svyzB:V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -147,6 +147,10 @@ void parse_cmdline(const int ac, const char **av) {
         break;
       case 'y':
         vcmd->verify++;
+
+        break;
+      case 'z':
+        vcmd->fuzz++;
 
         break;
       case 'V':
@@ -244,7 +248,8 @@ void parse_cmdline(const int ac, const char **av) {
       fjputs_debug("Attempting TLS handshake on TCP port 80..is this intentional?");
   } else {
     if(vcmd->portnum == 443u)
-      fjputs_debug("Attempting TCP connection without TLS on TCP port 443..is this intentional?");
+      vcmd->secure++;
+      // fjputs_debug("Attempting TCP connection without TLS on TCP port 443..is this intentional?");
   }
 
   HTTP_REQUEST *htrequ = &(vcmd->request);

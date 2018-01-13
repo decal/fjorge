@@ -1,17 +1,19 @@
 #include"fjorge.h"
 
 noreturn void usage_desc(const char *const restrict arg0) {
-  fprintf(stdout, CRLF "usage: %s HOST[:PORT] VERB PATH VERS [HHST[:HPRT]] [-d] [-s] [-v] [-y] [-n name.tld] [-h 'NAME: VALU'] [-o OFIL] [-B user:pass]" CRLF, arg0);
-  fputs(" HOST  numeric IP address or DNS hostname of web server target" CRLF, stdout);
-  fputs(" PORT  TCP port number to connect to at destination server" CRLF, stdout);
+  printf(CRLF "usage: %s HOST[:PORT] VERB PATH VERS [HHST[:HPRT]] [-d] [-s] [-v] [-y] [-z] [-n D.OM] [-h 'NAME: VALU'] [-o OFIL] [-B U:PW]" CRLF, arg0);
+  fputs(" HOST  numeric IP address or DNS hostname of target web server" CRLF, stdout);
+  fputs(" PORT  TCP port number to connect to on destination server" CRLF, stdout);
   fputs(" VERB  HTTP protocol method: GET, HEAD, POST, OPTIONS, CONNECT" CRLF, stdout);
   fputs(" PATH  relative path string or fully qualified URL" CRLF, stdout);
-  fputs(" VERS  protocol version such as: HTTP/1.0, HTTP/2.0" CRLF, stdout);
+  fputs(" VERS  protocol version string such as: HTTP/1.0, HTTP/2.0, etc." CRLF, stdout);
   fputs(" HHST  the hostname part of a custom Host header" CRLF, stdout);
   fputs(" HPRT  the port number part of a custom Host header" CRLF, stdout);
   fputs(" NAME  newly created HTTP request header field name" CRLF, stdout);
   fputs(" VALU  string value paired up with the new header name" CRLF, stdout);
   fputs(" OFIL  path name of output file to write HTTP traffic to" CRLF, stdout);
+  fputs(" D.OM  hostname for SNI (Server Name Indication)" CRLF, stdout);
+  fputs(" U:PW  Basic Authentication string in user:password format" CRLF, stdout);
   fputs(CRLF, stdout); 
   fputs(" -?  display the command line usage info being shown now" CRLF, stdout);
   fputs(" -d  debug level (may be used more than once)" CRLF, stdout);
@@ -24,11 +26,13 @@ noreturn void usage_desc(const char *const restrict arg0) {
   fputs(" -h  create an HTTP request header, duplicates permitted" CRLF, stdout);
   fputs(" -n  Set the TLS SNI (Server Name Indication) extension in ClientHello" CRLF, stdout);
   fputs(" -y  verify server-side certificate chain" CRLF, stdout);
+  fputs(" -z  fuzz request line and/or request headers" CRLF, stdout);
   fputs(" -B  Basic authentication string in user:password format" CRLF, stdout);
   fputs(" -V  show detailed version information and exit" CRLF, stdout);
   fputs(CRLF, stdout);
-  fprintf(stdout, "ex. %s www.google.com:80 GET /apps HTTP/1.1 localhost:80" CRLF, arg0);
-  fprintf(stdout, "ex. %s office365.com:443 HEAD / HTTP/1.0 -s" CRLF CRLF, arg0);
+  printf("ex. %s www.google.com:80 GET /apps HTTP/1.1 localhost:80" CRLF, arg0);
+  printf("ex. %s office365.com:443 HEAD / HTTP/1.0 -s" CRLF, arg0);
+  fputs(CRLF, stdout);
 
   exit(EX_USAGE);
 }
