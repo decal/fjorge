@@ -2,7 +2,7 @@ fjorge
 ======
 
 `fjorge` is a command-line program for manually crafting and recording forged
-HTTP(S) queries to be sent to a web server's TCP (HTTP) and TLS (HTTPS) ports.  
+HTTP(S) queries to be sent to a web server's TCP (HTTP) and TLS (HTTPS) ports.
 It's intended to be like a `netcat` for the Hyper Text Transfer Protocol insofar 
 as it allows as much user control over the protocol data as possible. Most HTTP 
 command line tools like `curl` and `wget` can't make simple modifications to
