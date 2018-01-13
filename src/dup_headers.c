@@ -4,7 +4,7 @@ void dup_headers(const char *anarg) {
   if(!anarg)
     puts(""); /* duplicate all */
 
-  const char *asep = strchr(anarg, ',');
+  char *asep = strchr(anarg, ',');
 
   if(asep) {
     *asep++ = '\0';

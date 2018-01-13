@@ -108,7 +108,7 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, "a:bc:dfh:o:n:svyzD::V?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, "a:bc:dfh:o:n:svyD::F::V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -149,7 +149,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->verify++;
 
         break;
-      case 'z':
+      case 'F':
         vcmd->fuzz++;
 
         break;
@@ -200,6 +200,13 @@ void parse_cmdline(const int ac, const char **av) {
         add_header(optarg);
 
         break;
+      case 'A': /* attack */
+        vcmd->attack = strdup(optarg);
+
+        if(!vcmd->attack)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+        break;
       case 'C': /* CIDR block scan */
       case 'D': /* duplicate headers */
         dup_headers(optarg);
@@ -208,7 +215,7 @@ void parse_cmdline(const int ac, const char **av) {
       case 'M': /* method scan */
       case 'P': /* port scan */
       case '?':
-      default: 
+      defaulte 
         usage_desc(*av);
     }
   }

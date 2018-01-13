@@ -108,23 +108,24 @@ typedef struct command_line {
   DIR *dirfiles; /* requests stored in files */
   unsigned int brief; /* make displayed output brief? */
   unsigned int callback; /* information callback? (not verification) */
-  unsigned int duplicate; /* duplicate request headers? */
   unsigned int fips; /* enable Federal Information Protection Standard? */
   unsigned int verbose; /* increase output verbosity? */
   unsigned int debug; /* show debugging information? */
   unsigned int secure; /* force Transport Layer Security? */
-  unsigned int fuzz; /* fuzz request headers? */
-  unsigned int shuffle; /* reorder request headers? */
   unsigned int multiply; /* multiple headers with same name, diff value */
   unsigned int casing; /* 1 = upper, 0 = rand, -1 = lower */
   unsigned int inject; /* inject new headers? */
+  unsigned int shuffle; /* randomly shuffle request header order */
   unsigned int verify; /* verify server-side certificate? */
   PROTOCOL_VERSION protocol;
   HTTP_REQUEST request;
   char *attack; /* Specify attack such as XSS, SQL injection, etc. -A xss,header */
   char *basic; /* HTTP Basic authentication */
   char *cipher; /* preferred cipher set */
+  char *duplicate; /* duplicate request headers */
+  char *fuzz; /* fuzz request headers */
   char *hostnam; /* host name */
+  char *reorder; /* reorder request headers */
   unsigned int portnum; /* port number */
   char *scan_ports; /* scan ports via Host: header */
   char *servername; /* SNI (Server Name Indication) */
@@ -143,6 +144,7 @@ extern COMMAND_LINE *vcmd;
 noreturn void signal_handler(const int);
 void add_header(char *restrict);
 char *decode_base64(const char *);
+void dup_headers(const char *);
 char *encode_base64(const char *);
 void auth_basic(const char *);
 signed char **make_hostnames(char **, const char *restrict *const, size_t);
