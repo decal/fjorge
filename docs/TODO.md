@@ -1,6 +1,8 @@
 __To-Do List__
 ==========
 
+* update OPTIONS: debugging output
+
 * add CONNECT method cases to `bin/canproxys` script
 
 * implement chunked encoding for responses first, then requests

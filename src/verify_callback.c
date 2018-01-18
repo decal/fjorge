@@ -1,90 +1,114 @@
 #include"fjorge.h"
 
-int mydata_index = 1;
+static BIO *bio_err = NULL;
 
-int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
-  char buf[256] = { '\0' }; 
+typedef struct verify_options_st {
+  int depth;
+  int quiet;
+  int error;
+  int return_error;
+} VERIFY_CB_ARGS;
 
+static VERIFY_CB_ARGS verify_args = { 0, 0, X509_V_OK, 0 };
+
+static void nodes_print(const char *name, STACK_OF(X509_POLICY_NODE) *nodes)
+{
+  BIO_printf(bio_err, "%s Policies:", name);
+
+  if (nodes) {
+    register int i;
+
+    fputc('\n', stderr);
+
+    for (i = 0; i < sk_X509_POLICY_NODE_num(nodes); i++) {
+      X509_POLICY_NODE *node = sk_X509_POLICY_NODE_value(nodes, i);
+      X509_POLICY_NODE_print(bio_err, node, 2);
+    } 
+  } else {
+    fputs(" <empty>\n", stderr);
+  }
+}
+
+static void policies_print(X509_STORE_CTX *ctx)
+{
+  X509_POLICY_TREE *tree = X509_STORE_CTX_get0_policy_tree(ctx);
+  const int explicit_policy = X509_STORE_CTX_get_explicit_policy(ctx);
+
+  fprintf(stderr, "Require explicit Policy: %s\n", explicit_policy ? "True" : "False");
+
+  nodes_print("Authority", X509_policy_tree_get0_policies(tree));
+  nodes_print("User", X509_policy_tree_get0_user_policies(tree));
+}
+
+int verify_callback(int ok, X509_STORE_CTX *ctx)
+{
+  bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
+
+  if(!bio_err)
+    error_at_line(1, errno, __FILE__, __LINE__, "BIO_new_fp: %s", strerror(errno));
+
+  const X509 *err_cert = X509_STORE_CTX_get_current_cert(ctx);
+  const int err = X509_STORE_CTX_get_error(ctx);
   const int depth = X509_STORE_CTX_get_error_depth(ctx);
-  int err = X509_STORE_CTX_get_error(ctx);
-  const X509 *cert = X509_STORE_CTX_get_current_cert(ctx);
-  const X509_NAME *iname = cert ? X509_get_issuer_name(cert) : NULL;
-  const X509_NAME *sname = cert ? X509_get_subject_name(cert) : NULL;
 
-  printf("iname: %x\n", iname);
-  printf("iname: %x\n", sname);
+  if(!(verify_args.quiet && ok)) {
+    fprintf(stderr, "depth=%d ", depth);
 
-  // validate_hostname("localhost", cert); 
+    if(err_cert) 
+      X509_NAME_print_ex(bio_err, X509_get_subject_name(err_cert), 0, XN_FLAG_ONELINE);
+    else
+      fputs("<no cert>", stderr);
 
-  fjprintf_callback("verify_callback (depth=%d)(preverify=%d)", depth, preverify_ok);
+    fputc('\n', stderr); 
+  }
 
-  cbprint_cnname("Issuer (cn)", iname);
-  cbprint_cnname("Subject (cn)", sname);
+  if(!ok) {
+    fprintf(stderr, "verify error:num=%d:%s\n", err, X509_verify_cert_error_string(err));
 
-  if(!depth) 
-    cbprint_sanname("Subject (san)", cert);
+    if(verify_args.depth >= depth) {
+      if(!verify_args.return_error)
+        ok = 1;
 
-  // error_callback(err, "verify_callback");
-
-  if(!preverify_ok) {
-    switch(err) {
-      case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
-        puts(" Error = X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY");
-
-        break;
-        
-      case X509_V_ERR_CERT_UNTRUSTED:
-        puts(" Error = X509_V_ERR_CERT_UNTRUSTED");
-
-        break;
-      case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-        puts(" Error = X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN");
-
-        break;
-      case X509_V_ERR_CERT_NOT_YET_VALID:
-        puts(" Error = X509_V_ERR_CERT_NOT_YET_VALID");
-
-        break;
-      case X509_V_ERR_CERT_HAS_EXPIRED:
-        puts(" Error = X509_V_ERR_CERT_HAS_EXPIRED");
-
-        break;
-      case X509_V_OK:
-        puts(" Error = X509_V_OK");
-
-        break;
-      default:
-        printf(" Error = %d\n", err);
-
-        break;
+      verify_args.error = err;
+    } else {
+      ok = 0;
+      verify_args.error = X509_V_ERR_CERT_CHAIN_TOO_LONG;
     }
   }
 
-  const SSL *ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
-  const mydata_t *mydata = SSL_get_ex_data(ssl, mydata_index); 
+  switch (err) {
+    case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
+      fputs("issuer= ", stderr);
+      X509_NAME_print_ex_fp(stderr, X509_get_issuer_name(err_cert), 0, XN_FLAG_ONELINE);
+      fputc('\n', stderr);
 
-  X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof buf); 
+      break;
+    case X509_V_ERR_CERT_NOT_YET_VALID:
+    case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
+      fputs("notBefore=", stderr);
+      ASN1_TIME_print(bio_err, X509_get0_notBefore(err_cert)); 
+      fputc('\n', stderr);
+      break;
+    case X509_V_ERR_CERT_HAS_EXPIRED:
+    case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
+      fputs("notAfter=", stderr);
+      ASN1_TIME_print(bio_err, X509_get0_notAfter(err_cert));
+      fputc('\n', stderr);
+      break;
+    case X509_V_ERR_NO_EXPLICIT_POLICY:
+      if(!verify_args.quiet)
+        policies_print(ctx);
 
-  if(depth > mydata->verify_depth) {
-   preverify_ok = 0;
-   err = X509_V_ERR_CERT_CHAIN_TOO_LONG;
-
-   X509_STORE_CTX_set_error(ctx, err);
-  } 
-
-  if(!preverify_ok) 
-    fjprintf_callback("verify error:num=%d:%s:depth=%d:%s", err, X509_verify_cert_error_string(err), depth, buf);
-  else if (mydata->verbose_mode) 
-    fjprintf_callback("depth=%d:%s", depth, buf);
-  
-  if(!preverify_ok && (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT)) {
-    X509_NAME_oneline(X509_get_issuer_name(cert), buf, sizeof buf);
-
-    fjprintf_callback("issuer=%s", buf);
+      break;
   }
 
-  if(mydata->always_continue)
-    return 1; 
-  
-  return preverify_ok;
+  if(!verify_args.quiet) {
+    if(err == X509_V_OK && ok == 2)
+      policies_print(ctx);
+
+    if(ok)
+      fprintf(stderr, "verify return:%d\n", ok);
+  }
+
+  return ok;
 }
