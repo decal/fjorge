@@ -20,6 +20,7 @@
 #define BADGE_CALLBACK "*-* "
 #define BADGE_DEBUG "*~* "
 #define BADGE_ERROR "*!* "
+#define BADGE_PORT "*:* "
 #define BADGE_RECV "*>* "
 #define BADGE_SEND "*<* "
 #define BADGE_TLSERROR "*=* "
@@ -82,7 +83,7 @@ typedef struct port_numbers {
   unsigned short portlo;
   unsigned short porthi;
   struct port_numbers *nextpn;
-} PORT_NUMBERS, *PPORT_NUMBERS, **PPPORT_NUMBERS;
+} PORT_RANGELIST, *PPORT_RANGELIST, **PPPORT_RANGELIST;
 
 typedef struct protocol_version {
   char *proto;
@@ -162,8 +163,8 @@ int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
 void error_callback(const unsigned long, const char *const);
 void info_callback(const SSL *, int, int);
-size_t count_ports(PORT_NUMBERS *);
-PORT_NUMBERS *parse_ports(const char *);
+size_t count_ports(PORT_RANGELIST *);
+PORT_RANGELIST *parse_ports(const char *);
 HostnameValidationResult match_cn(const char *, const X509 *);
 HostnameValidationResult match_san(const char *, const X509 *);
 HostnameValidationResult validate_hostname(const char *, const X509 *);
@@ -176,6 +177,7 @@ char *pack_protover(const HTTP_VERSION *);
 void parse_cmdline(const int, const char **);
 noreturn void usage_desc(const char *const restrict); 
 const size_t array_length(char **);
+unsigned short *array_ports(PORT_RANGELIST *);
 signed char **print_hostnames(const char *restrict *const, const char *restrict *const, size_t);
 void print_options(FILE *);
 void print_trace(void);

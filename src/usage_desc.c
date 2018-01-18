@@ -23,6 +23,7 @@ noreturn void usage_desc(const char *const restrict arg0) {
 #endif
   fputs(" -o  output the request and response text to a file" CRLF, stdout);
   fputs(" -s  enable transport stream security with HTTPS" CRLF, stdout);
+  fputs(" -t  SSL/TLS version number for initial handshake" CRLF, stdout);
   fputs(" -v  verbosity level (may be used more than once)" CRLF, stdout);
   fputs(" -h  create an HTTP request header, duplicates permitted" CRLF, stdout);
   fputs(" -n  Set the TLS SNI (Server Name Indication) extension in ClientHello" CRLF, stdout);

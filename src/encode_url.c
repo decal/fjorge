@@ -48,29 +48,27 @@ char *encode_url(const char *input) {
   return output;
 }
 
-#if 0
+#ifdef TEST_DRIVE
 int main(int argc, char **argv) 
 {
-    if(argc > 1)
-    {
-        char *input = argv[1];
-        const char *encoded = encode_url(input);
+  if(argc > 1) {
+    char *input = argv[1];
+    const char *encoded = encode_url(input);
 
-        puts(encoded);
-        free(encoded);
-    }
-    else
-    {
-        char *line = NULL;
-        size_t size;
-        while(getline(&line, &size, stdin) != -1)
-        {
-            const char *encoded = encode_url(line);
+    puts(encoded);
+    free(encoded);
+  } else {
+    char *line = NULL;
+    size_t size = 0;
 
-            puts(encoded);
-            free(encoded);
-        }
+    while(getline(&line, &size, stdin) != -1) {
+      const char *encoded = encode_url(line);
+
+      puts(encoded);
+      free(encoded);
     }
-    return 0;
+  }
+
+  return 0;
 }
 #endif

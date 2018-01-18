@@ -1,18 +1,23 @@
 #!/usr/bin/env bash
 
+
 declare -i acnt=0
 
-while true
-  do if [ ! -f ./CMakeLists.txt ]
-    then cd ..
-  else
-    break
-  fi
-done
+if [ ! -f ./CMakeLists.txt ]
+  then 'echo Not in root directory! ./CMakeLists.txt does not exist'
+
+  exit 1
+fi
+
+bin/clobbertests
+
+find . -type f -iname 'gmon.out' -exec rm -f {} \;
+find . -type f -iname 'strace.out' -exec rm -f {} \;
+find . -type f -iname 'core' -exec rm -f {} \;
 
 [ -f Makefile ] && make clean
 
-for afile in ./CMakeCache.txt ./CMakeFiles ./cmake_install.cmake ./Makefile ./gmon.out ./strace.out
+for afile in ./CMakeCache.txt ./CMakeFiles ./cmake_install.cmake ./Makefile 
   do if [ -f $afile -o -d $afile ] 
     then acnt+=1 
 

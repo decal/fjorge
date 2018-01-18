@@ -11,6 +11,7 @@ add_executable(
 	fjorge
   src/add_header.c
   src/array_length.c
+  src/array_ports.c
   src/auth_basic.c
   src/count_ports.c
   src/dup_headers.c

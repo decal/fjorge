@@ -1,16 +1,31 @@
 #include"fjorge.h"
 
-static void fatal(const char *s) {
-  perror(s);
+#ifdef TEST_DRIVE
+#define fjprintf_error printf
+#endif
 
-  exit(EXIT_FAILURE);
+static void error_port(const char *s) {
+  fputs(BADGE_PORT, stderr);
+  fputs(s, stderr);
+  fputc('\n', stderr);
+
+  fputs(BADGE_PORT, stderr);
+  fputs("Examples of proper port-range,list format:\n", stderr);
+  fputs("22\n", stderr);
+  fputs("80,443\n", stderr);
+  fputs("21-25\n", stderr);
+  fputs("8000-8080,10000\n", stderr);
+  fputs("1000-1100,2000-2100\n", stderr);
+  fputc('\n', stderr);
+
+  exit(EX_DATAERR);
 }
 
-PORT_NUMBERS *parse_ports(const char *portstr) {
-  PORT_NUMBERS *headp = NULL, *portp = NULL;
+PORT_RANGELIST *parse_ports(const char *portstr) {
+  PORT_RANGELIST *headp = NULL, *portp = NULL;
   const char *current_range = portstr;
   char *endptr = NULL;
-  long int rangestart = 0, rangeend = 0;
+  long int rangestart = 0, rangeend = 0, rangecur = 0;
 
   assert(portstr);
 
@@ -28,18 +43,18 @@ PORT_NUMBERS *parse_ports(const char *portstr) {
     if(isdigit((int) (unsigned char) *current_range)) {
       rangestart = strtol(current_range, &endptr, 10);
 
-      if(rangestart == ERANGE)
+      if(errno == ERANGE)
         error_at_line(1, errno, __FILE__, __LINE__, "strtol: %s", strerror(errno));
 
       if (rangestart < 0 || rangestart > 65535) 
-        fatal("Parse error: Ports must be between 0 and 65535 inclusive");
+        error_port("Ports must be between 0 and 65535 inclusive");
 
       current_range = endptr;
 
       while(isspace((int)(unsigned char)*current_range)) 
         current_range++;
     } else {
-      fatal("Parse error: An example of proper portlist form is \"21-25,53,80\"");
+      error_port("Range must start with a digit!");
     }
 
     /* Now I have a rangestart, time to go after rangeend */
@@ -52,25 +67,41 @@ PORT_NUMBERS *parse_ports(const char *portstr) {
       if (isdigit((int) (unsigned char) *current_range)) {
         rangeend = strtol(current_range, &endptr, 10);
 
-        if(rangeend == ERANGE)
+        if(errno == ERANGE)
           error_at_line(1, errno, __FILE__, __LINE__, "strtol: %s", strerror(errno));
 
         if (rangeend < 0 || rangeend > 65535 || rangeend < rangestart) 
-          fatal("Parse error: Ports must be between 0 and 65535 inclusive");
+          error_port("Ports must be between 0 and 65535 inclusive");
         
         current_range = endptr;
       } else {
-        fatal("Parse error: An example of proper portlist form is \"21-25,53,80\"");
+        error_port("End of range must start with a digit!");
       }
     } else {
-      fatal("Parse error: An example of proper portlist form is \"21-25,53,80\"");
+      error_port("Range numbers must be separated by commas or dashes!");
     }
+
+    if(rangecur) {
+      if(rangecur > rangeend) {
+        fjprintf_error("Current range %lu greater than ending range %lu", rangecur, rangeend);
+
+        exit(EX_DATAERR);
+      } else {
+        if(rangecur == rangeend) {
+          fjprintf_error("Current range: %lu equal to ending range %lu", rangecur, rangeend);
+
+          exit(EX_DATAERR);
+        }
+      }
+    }
+
+    rangecur = rangeend;
 
     /* Now I have a rangestart and a rangeend, so I can add these ports */
     portp->portlo = (unsigned short)rangestart;
 
-    while(rangestart <= rangeend)
-      rangestart++;
+    /* while(rangestart <= rangeend)
+      rangestart++; */
 
     portp->porthi = (unsigned short)rangeend;
     portp->nextpn = calloc(1, sizeof *(portp->nextpn));
@@ -85,7 +116,7 @@ PORT_NUMBERS *parse_ports(const char *portstr) {
       current_range++;
 
     if (*current_range && *current_range != ',') 
-      fatal("Parse error: An example of proper portlist form is \"21-25,53,80\"");
+      error_port("Parse error: range specifiers must be delimited by commas!");
     
     if (*current_range == ',')
       current_range++;
@@ -93,3 +124,39 @@ PORT_NUMBERS *parse_ports(const char *portstr) {
 
   return headp;
 }
+
+/* gcc -o parse_ports parse_ports.c count_ports.c array_ports.c -I../include -DTEST_DRIVE */
+#ifdef TEST_DRIVE
+int main(int argc, char *argv[1]) {
+  register PPORT_RANGELIST p = NULL;
+
+  if(argc < 2) {
+    fprintf(stderr, "usage: %s PORTRANGE\n", *argv);
+    fputs("  PORTRANGE  range of port numbers\n", stderr);
+    fprintf(stderr, "ex. %s 1-10\n", *argv);
+    exit(EX_USAGE);
+  }
+
+  p = parse_ports(argv[1]);
+
+  unsigned short *i = array_ports(p);
+
+  register unsigned short *ip = i;
+
+  while(*ip) {
+    printf("%d\n", *ip);
+    
+    ip++;
+  }
+
+
+  /* while(p) {
+    if(p->portlo && p->porthi)
+      printf("portlo: %u porthi: %u\n", p->portlo, p->porthi);
+
+    p = p->nextpn;
+  } */
+
+  return 0;
+}
+#endif

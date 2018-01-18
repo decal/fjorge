@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
-size_t count_ports(PORT_NUMBERS *pnums) {
-  register PPORT_NUMBERS pport = pnums;
+size_t count_ports(PORT_RANGELIST *pnums) {
+  register PPORT_RANGELIST pport = pnums;
   register size_t count = -1;
 
   assert(pnums);

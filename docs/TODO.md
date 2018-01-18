@@ -1,6 +1,8 @@
 __To-Do List__
 ==========
 
+* add CONNECT method cases to `bin/canproxys` script
+
 * implement chunked encoding for responses first, then requests
 
 * act as HTTP(S) server daemon

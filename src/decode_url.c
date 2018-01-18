@@ -3,40 +3,45 @@
 char *decode_url(const char *input) {
   assert(input);
 
-	const int input_length = strlen(input);
+	const size_t input_length = strlen(input);
 	size_t output_length = input_length;
-	char *working = NULL, *output = NULL;
+	char *working = NULL;
 
   if(!input_length)
     return "";
 
-  working = malloc(++output_length);
+  char *output = malloc(++output_length);
 
-  if(!working)
+  if(!output)
     error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
 
-  output = working;
+  working = output;
 	
-	do {
+  do {
     if(*input == '%') {
-			const char buffer[3] = { input[1], input[2], 0 };
+      const char buffer[3] = { input[1], input[2], 0 };
 
-			*working++ = strtol(buffer, NULL, 16);
-			input += 3;
+      *working++ = strtol(buffer, NULL, 16);
+
+      if(errno == ERANGE)
+        error_at_line(1, errno, __FILE__, __LINE__, "strtol: %s", strerror(errno));
+
+      input += 3;
 
       continue;
-		}
-	
-    *working++ = *input++;
-	} while(*input);
+    }
 
-	*working = '\0'; //null terminate
+    *working++ = *input++;
+  } while(*input);
+
+	*working = '\0';
 
 	return output;
 }
 
 #ifdef TEST_DRIVE
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   if(argc > 1) {
     char *input = argv[1];
     char *decoded = decode_url(input);

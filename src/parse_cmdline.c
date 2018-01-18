@@ -2,9 +2,10 @@
 
 static int test_arguments(const int optind, const int ac) {
   if(optind >= ac) {
-    printf("optind: %d ac: %d\n", optind, ac);
-
-    fjputs_error("Expected argument after options");
+    if(optind == 1 && ac == 1)
+      fjputs_error("Expected arguments after command name");
+    else
+      fjputs_error("Expected argument after options");
 
     return 1;
   }
@@ -110,7 +111,7 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, ":a:bc:dfh:n:o:p:svyD::F::V?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, ":a:bc:dfh:n:o:t:svyD::F::V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -198,7 +199,9 @@ void parse_cmdline(const int ac, const char **av) {
           error(1, errno, "fopen: %s", strerror(errno));
 
         break;
-      case 'p': /* TLS Protocol Number */
+      case 'p': /* Port number for Host header and/or SNI */
+        break;
+      case 't': /* TLS Protocol Number */
         vcmd->protocol = (unsigned int)strtoul(optarg, NULL, 0x0A);
 
         if(errno == ERANGE)
