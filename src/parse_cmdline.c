@@ -2,6 +2,8 @@
 
 static int test_arguments(const int optind, const int ac) {
   if(optind >= ac) {
+    printf("optind: %d ac: %d\n", optind, ac);
+
     fjputs_error("Expected argument after options");
 
     return 1;
@@ -108,7 +110,7 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, "a:bc:dfh:o:n:svyD::F::V?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, ":a:bc:dfh:n:o:p:svyD::F::V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -196,6 +198,26 @@ void parse_cmdline(const int ac, const char **av) {
           error(1, errno, "fopen: %s", strerror(errno));
 
         break;
+      case 'p': /* TLS Protocol Number */
+        vcmd->protocol = (unsigned int)strtoul(optarg, NULL, 0x0A);
+
+        if(errno == ERANGE)
+          usage_desc(*av);
+
+        switch(vcmd->protocol) {
+          case 1: /* TLSv1 */
+          case 11: /* TLSv1.1 */
+          case 12: /* TLSv1.2 */
+          case 13: /* TLSv1.3 */
+          case 3: /* SSLv3 */
+            break;
+          default:
+            fjputs_error("Incorrect TLS protocol version number supplied!");
+
+            exit(EX_USAGE);
+        }
+
+        break;
       case 'h':
         add_header(optarg);
 
@@ -214,9 +236,18 @@ void parse_cmdline(const int ac, const char **av) {
         break;
       case 'M': /* method scan */
       case 'P': /* port scan */
+        vcmd->portscan = strdup(optarg);
+
+        if(!vcmd->portscan)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+        break;
+      default:
+        fjprintf_error("%c is an incorrect command line flag!", (char)opt);
       case '?':
-      defaulte 
         usage_desc(*av);
+
+        break;
     }
   }
 
@@ -252,6 +283,9 @@ void parse_cmdline(const int ac, const char **av) {
 
       usage_desc(*av);
     }
+
+    if(vcmd->portnum == 443u)
+      vcmd->secure++;
   }
 
   if(vcmd->secure) {
@@ -295,9 +329,9 @@ void parse_cmdline(const int ac, const char **av) {
         if(!htrequ->vers)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        PROTOCOL_VERSION *prover = unpack_protover(av[optind]);
+        HTTP_VERSION *prover = unpack_protover(av[optind]);
 
-        memcpy(&(vcmd->protocol), prover, sizeof *prover);
+        memcpy(&(vcmd->version), prover, sizeof *prover);
 
         free(prover);
 

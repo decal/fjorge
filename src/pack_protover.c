@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-char *pack_protover(const PROTOCOL_VERSION *aver) {
+char *pack_protover(const HTTP_VERSION *aver) {
   size_t alen = 1 + strlen(aver->proto) + strlen(aver->delim) + strlen(aver->major) + strlen(aver->minor);
 
   char *aret = malloc(++alen);

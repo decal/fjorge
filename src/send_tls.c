@@ -30,7 +30,7 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
   }
 
   if(sreq->hdrs) {
-    register PLINKED_LIST lsp = sreq->hdrs;
+    register PHEADER_LIST lsp = sreq->hdrs;
 
     do { 
       slen += BIO_puts(abio, lsp->header);

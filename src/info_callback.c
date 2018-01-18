@@ -17,9 +17,9 @@ void info_callback(const SSL *s, int where, int ret) {
     fjprintf_callback("SSL3 alert %s:%s:%s", str, SSL_alert_type_string_long(ret), SSL_alert_desc_string_long(ret));
   } else if (where & SSL_CB_EXIT) {
     if (!ret)
-      fjprintf_callback("%s:failed in %s", str, SSL_state_string_long(s));
+      fjprintf_callback("%s: failed in %s", str, SSL_state_string_long(s));
     else if (ret < 0)
-      fjprintf_callback("%s:error in %s", str, SSL_state_string_long(s));
+      fjprintf_callback("%s: error in %s", str, SSL_state_string_long(s));
   }
 
   return;

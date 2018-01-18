@@ -78,24 +78,30 @@ typedef struct {
   int always_continue;
 } mydata_t;
 
+typedef struct port_numbers {
+  unsigned short portlo;
+  unsigned short porthi;
+  struct port_numbers *nextpn;
+} PORT_NUMBERS, *PPORT_NUMBERS, **PPPORT_NUMBERS;
+
 typedef struct protocol_version {
   char *proto;
   char *major;
   char *delim;
   char *minor;
-} PROTOCOL_VERSION, *PPROTOCOL_VERSION, **PPPROTOCOL_VERSION;
+} HTTP_VERSION, *PHTTP_VERSION, **PPHTTP_VERSION;
 
-typedef struct linked_list {
+typedef struct header_list {
   char *header;
-  struct linked_list *next;
-} LINKED_LIST, *PLINKED_LIST, **PPLINKED_LIST;
+  struct header_list *next;
+} HEADER_LIST, *PHEADER_LIST, **PPHEADER_LIST;
 
 typedef struct http_request {
   char *verb;
   char *path;
   char *vers;
   char *host;
-  struct linked_list *hdrs;
+  struct header_list *hdrs;
   char *body;
 } HTTP_REQUEST, *PHTTP_REQUEST, **PPHTTP_REQUEST;
 
@@ -117,7 +123,8 @@ typedef struct command_line {
   unsigned int inject; /* inject new headers? */
   unsigned int shuffle; /* randomly shuffle request header order */
   unsigned int verify; /* verify server-side certificate? */
-  PROTOCOL_VERSION protocol;
+  unsigned int protocol;
+  HTTP_VERSION version;
   HTTP_REQUEST request;
   char *attack; /* Specify attack such as XSS, SQL injection, etc. -A xss,header */
   char *basic; /* HTTP Basic authentication */
@@ -127,7 +134,7 @@ typedef struct command_line {
   char *hostnam; /* host name */
   char *reorder; /* reorder request headers */
   unsigned int portnum; /* port number */
-  char *scan_ports; /* scan ports via Host: header */
+  char *portscan; /* scan ports via Host: header */
   char *servername; /* SNI (Server Name Indication) */
 } COMMAND_LINE, *PCOMMAND_LINE, **PPCOMMAND_LINE;
 
@@ -142,7 +149,7 @@ typedef struct http_response {
 extern COMMAND_LINE *vcmd;
 
 noreturn void signal_handler(const int);
-void add_header(char *restrict);
+PHEADER_LIST add_header(const char *);
 char *decode_base64(const char *);
 void dup_headers(const char *);
 char *encode_base64(const char *);
@@ -155,14 +162,17 @@ int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
 void error_callback(const unsigned long, const char *const);
 void info_callback(const SSL *, int, int);
+size_t count_ports(PORT_NUMBERS *);
+PORT_NUMBERS *parse_ports(const char *);
 HostnameValidationResult match_cn(const char *, const X509 *);
 HostnameValidationResult match_san(const char *, const X509 *);
+HostnameValidationResult validate_hostname(const char *, const X509 *);
 int verify_callback(int, X509_STORE_CTX *);
 void error_tls(const SSL *, const int, const char *const);
 size_t recv_tls(BIO *);
 int send_tls(BIO *, const HTTP_REQUEST *);
-PROTOCOL_VERSION *unpack_protover(const char *);
-char *pack_protover(const PROTOCOL_VERSION *);
+HTTP_VERSION *unpack_protover(const char *);
+char *pack_protover(const HTTP_VERSION *);
 void parse_cmdline(const int, const char **);
 noreturn void usage_desc(const char *const restrict); 
 const size_t array_length(char **);

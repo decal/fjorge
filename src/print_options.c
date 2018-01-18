@@ -6,7 +6,7 @@ void print_options(FILE *fptr) {
   fputs("*** OPTIONS: headers = ", fptr);
 
   if(vcmd->request.hdrs) {
-    register PLINKED_LIST lsp = vcmd->request.hdrs;
+    register PHEADER_LIST lsp = vcmd->request.hdrs;
 
     do {
       fputs(lsp->header, fptr);
@@ -27,7 +27,7 @@ void print_options(FILE *fptr) {
   fprintf(fptr, " verbose = %u", vcmd->verbose);
   fprintf(fptr, " debug = %u", vcmd->debug);
   fprintf(fptr, " secure = %u", vcmd->secure);
-  fprintf(fptr, " fuzz = %u", vcmd->fuzz);
+  fprintf(fptr, " fuzz = %s", vcmd->fuzz);
   fprintf(fptr, " shuffle = %u", vcmd->shuffle);
   fprintf(fptr, " multiply = %u", vcmd->multiply);
   fprintf(fptr, " casing = %u", vcmd->casing);

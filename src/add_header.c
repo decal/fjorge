@@ -1,10 +1,12 @@
 #include"fjorge.h"
 
-void add_header(char *restrict aline) {
-  PLINKED_LIST lsp = vcmd->request.hdrs;
+PHEADER_LIST add_header(const char *aline) {
+  assert(aline);
 
-  if(!vcmd->request.hdrs) {
-    vcmd->request.hdrs = calloc(1, sizeof*(vcmd->request.hdrs));
+  register PHEADER_LIST lsp = vcmd->request.hdrs;
+
+  if(!lsp) {
+    vcmd->request.hdrs = calloc(1, sizeof *(vcmd->request.hdrs));
 
     if(!vcmd->request.hdrs)
       error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
@@ -15,13 +17,13 @@ void add_header(char *restrict aline) {
     if(!lsp->header)
       error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
     
-    return;
+    return lsp;
   }
 
   while(lsp->next)
     lsp = lsp->next;
   
-  lsp->next = calloc(1, sizeof*(lsp->next));
+  lsp->next = calloc(1, sizeof *(lsp->next));
 
   if(!lsp->next)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
@@ -32,5 +34,5 @@ void add_header(char *restrict aline) {
   if(!lsp->header)
     error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-  return;
+  return lsp;
 }

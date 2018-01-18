@@ -25,7 +25,7 @@ FILE *send_request(const int sock, const HTTP_REQUEST *sreq) {
   }
 
   if(sreq->hdrs) {
-    register PLINKED_LIST lsp = sreq->hdrs;
+    register PHEADER_LIST lsp = sreq->hdrs;
 
     do { 
       fputs(lsp->header, sockfp);

@@ -45,8 +45,10 @@ size_t recv_response(FILE *sockfp) {
       }
     }
 
-    if(vcmd->output)
+    if(vcmd->output) {
       fputs(abuf, vcmd->output);
+      fputs(CRLF, vcmd->output);
+    }
 
     if(!asiz && vcmd->brief)
       break;

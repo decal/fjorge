@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 size_t recv_tls(BIO *sockfp) {
-  char rbuf[BUFSIZ * 10] = { 0x00 };
+  char rbuf[BUFSIZ] = { 0x00 };
   size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
   char *abuf = rbuf, *sptr = NULL;
 
@@ -31,7 +31,7 @@ size_t recv_tls(BIO *sockfp) {
     if(!strcmp(abuf, CRLF))
       flag = 1; 
 
-    if(asiz) {
+    if(bret) {
       fputs(BADGE_RECV, stdout);
       puts(abuf);
     }
@@ -55,8 +55,10 @@ size_t recv_tls(BIO *sockfp) {
       }
     }
 
-    if(vcmd->output)
+    if(vcmd->output) {
       fputs(abuf, vcmd->output);
+      fputs(CRLF, vcmd->output);
+    }
 
     if(!asiz && vcmd->brief) 
       break;

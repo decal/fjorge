@@ -11,7 +11,10 @@ int verify_callback(int preverify_ok, X509_STORE_CTX *ctx) {
   const X509_NAME *iname = cert ? X509_get_issuer_name(cert) : NULL;
   const X509_NAME *sname = cert ? X509_get_subject_name(cert) : NULL;
 
-  validate_hostname("localhost", cert); 
+  printf("iname: %x\n", iname);
+  printf("iname: %x\n", sname);
+
+  // validate_hostname("localhost", cert); 
 
   fjprintf_callback("verify_callback (depth=%d)(preverify=%d)", depth, preverify_ok);
 

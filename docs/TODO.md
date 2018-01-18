@@ -1,6 +1,8 @@
 __To-Do List__
 ==========
 
+* implement chunked encoding for responses first, then requests
+
 * act as HTTP(S) server daemon
 
 * request body crafting, i.e. https://www.exploit-db.com/exploits/22106/

@@ -12,6 +12,7 @@ add_executable(
   src/add_header.c
   src/array_length.c
   src/auth_basic.c
+  src/count_ports.c
   src/dup_headers.c
   src/encode_base64.c
   src/fjputs_callback.c
@@ -29,6 +30,7 @@ add_executable(
   src/match_san.c
   src/pack_protover.c
   src/parse_cmdline.c
+  src/parse_ports.c
   src/cbprint_cnname.c
   src/error_callback.c
   src/cbprint_sanname.c

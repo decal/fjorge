@@ -60,7 +60,7 @@ void cbprint_sanname(const char *label, const X509 *const cert) {
 
     if(names)
       GENERAL_NAMES_free((GENERAL_NAMES *)names);
-  } while (0);
+  } while(0);
     
   if(utf8)
     OPENSSL_free(utf8);
