@@ -1,6 +1,23 @@
 __To-Do List__
 ==========
 
+* make sure CRLF is only sent to network I/O streams
+  - standard I/O should be single UNIX newline
+
+* doxygen everything
+
+* make vcmd a regular object instead of a pointer
+
+* decide what to do about error_at_line() calls
+
+* make CLI flag for callbacks take string to distinguish between one or more callback function types 
+
+* SSL_session_has_ticket
+
+* SSL_CTX_set_tlsext_status_cb
+
+* renegotiate with different SNI name
+
 * update OPTIONS: debugging output
 
 * add CONNECT method cases to `bin/canproxys` script
@@ -38,3 +55,12 @@ __To-Do List__
 * display `Content-Length` with brief mode in case reply codes are all 200
 
 * create a manual page with `nroff(1)`
+
+* -b, --cookie STRING/FILE  Read cookies from STRING/FILE (H)
+
+*  -c, --cookie-jar FILE  Write cookies to FILE after operation (H)
+
+* --create-dirs   Create necessary local directory hierarchy
+
+* --crlf          Convert LF to CRLF in upload
+

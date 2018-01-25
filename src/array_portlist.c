@@ -1,11 +1,10 @@
 #include"fjorge.h"
 
-unsigned short *array_ports(PORT_RANGELIST *plist) {
-  register PPORT_RANGELIST aport = plist;
-
+unsigned short *array_portlist(PORT_RANGELIST *plist) {
   assert(plist);
 
-  size_t asize = count_ports(plist);
+  register PPORT_RANGELIST aport = plist;
+  size_t asize = count_portlist(plist);
 
   unsigned short *aretn = calloc(++asize, sizeof *aretn);
 

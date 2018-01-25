@@ -1,6 +1,7 @@
 #include"fjorge.h"
 
-void cbprint_sanname(const char *label, const X509 *const cert) {
+// NID_subject_alt_name
+void output_x509(const char *label, const X509 *const cert, const int anid, const int type) {
   assert(label);
 
   int success = 0;
@@ -10,7 +11,7 @@ void cbprint_sanname(const char *label, const X509 *const cert) {
     if(!cert) 
       break; /* failed */
         
-    const GENERAL_NAMES *names = X509_get_ext_d2i(cert, NID_subject_alt_name, NULL, NULL);
+    const GENERAL_NAMES *names = X509_get_ext_d2i(cert, anid, NULL, NULL);
 
     if(!names)
       break;
@@ -28,16 +29,14 @@ void cbprint_sanname(const char *label, const X509 *const cert) {
       if(!entry)
         continue;
             
-      if(GEN_DNS == entry->type) {
-        int len1 = 0, len2 = -1;
-                
-        len1 = ASN1_STRING_to_UTF8(&utf8, entry->d.dNSName);
+      if(type == entry->type) {
+        int len1 = ASN1_STRING_to_UTF8(&utf8, entry->d.dNSName), len2 = -1;
 
         if(utf8)
           len2 = (int)strlen((const char *)utf8);
                 
         if(len1 != len2)
-          fjprintf_error("  Strlen and ASN1_STRING size do not match (embedded null?): %d vs %d", len2, len1);
+          fjprintf_error("  strlen() and ASN1_STRING size do not match (embedded NULL?): %d vs. %d", len2, len1);
           
                 
         /* If there's a problem with string lengths, then     */

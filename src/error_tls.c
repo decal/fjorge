@@ -1,12 +1,12 @@
 #include"fjorge.h"
 
-void error_tls(const SSL *ssl, const int ret, const char *const afn) {
+BIO *error_tls(const SSL *ssl, const int ret, const char *const afn) {
   assert(afn);
 
   if(!ssl) {
     perror(afn);
 
-    return;
+    return NULL;
   }
     
   const int res = SSL_get_error(ssl, ret);
@@ -60,5 +60,5 @@ void error_tls(const SSL *ssl, const int ret, const char *const afn) {
   fputs(SSL_state_string_long(ssl), stderr);
   fputs(CRLF, stderr);
 
-  return;
+  return NULL;
 }

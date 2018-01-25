@@ -4,11 +4,7 @@ size_t recv_response(FILE *sockfp) {
   char abuf[BUFSIZ] = { 0x00 };
   register size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0;
 
-  if(!sockfp) {
-    fjputs_error("Encountered NULL FILE pointer before attempting to read plaintext response!");
-
-    exit(EX_IOERR);
-  }
+  assert(sockfp);
 
   while(fgets(abuf, sizeof abuf, sockfp)) {
     if(!strncasecmp(abuf, "content-length:", 15)) {

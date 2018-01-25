@@ -13,32 +13,52 @@ static int test_arguments(const int optind, const int ac) {
   return 0;
 }
 
-static void show_version(const char *restrict av0) {
+static noreturn void show_version(const char *restrict av0) {
   static int sslver_consts[] = { SSLEAY_VERSION, SSLEAY_CFLAGS, SSLEAY_BUILT_ON, SSLEAY_PLATFORM, SSLEAY_DIR };
   register signed int i = 0;
 
-  puts("\n=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
+  puts("");
+
+  puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
   puts("= fjorge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> =");
-  puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=\n");
+  puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
+
+  puts("");
+
   puts("GitHub repository: https://github.com/decal/fjorge");
+
   puts("");
 
 #ifdef __STD_C_VERSION__
-  printf("ANSI C Standard Library Version: %d" CRLF CRLF, __STD_C_VERSION__);
+  printf("ANSI C Standard Library Version: %d ", __STD_C_VERSION__);
 #endif
 
 #ifdef _POSIX_VERSION
-  printf("POSIX Version: %ld" CRLF CRLF, _POSIX_VERSION);
+  printf("POSIX Version: %ld ", _POSIX_VERSION);
 #endif
 
-#ifdef _POSIX2_VERSION
-  printf("POSIX.2 Version: %ld" CRLF CRLF, _POSIX2_VERSION);
+#ifdef ZLIB_VERSION
+  printf("ZLib Version: %s ", ZLIB_VERSION);
 #endif
 
+#ifdef OPENSSL_VERSION_NUMBER
+  printf("OpenSSL Version Number: %lx ", OPENSSL_VERSION_NUMBER);
+#endif
+
+#ifdef OPENSSL_THREADS
+  puts("OpenSSL Threads Enabled!");
+#else
+  puts("OpenSSL Threads Disabled!");
+#endif
+
+  puts("");
   fputs("Crypto Library =>", stdout);
 
   for(i = 0;i < 5;++i) {
-    const char *ver = OpenSSL_version(sslver_consts[i]);
+    const char *const ver = OpenSSL_version(sslver_consts[i]);
+
+    if(!ver)
+      continue;
 
     switch(i) { 
       case 0:
@@ -61,14 +81,14 @@ static void show_version(const char *restrict av0) {
         printf(" (Directory) %s", ver);
 
         break;
+      default:
+        printf(" (UNKNOWN) %s", ver);
+
+        break;
     }
   }
 
-  puts("");
-
-#ifdef ZLIB_VERSION
-  printf(CRLF "ZLib Version: %s" CRLF CRLF, ZLIB_VERSION);
-#endif
+  puts(CRLF);
 
   exit(EX_OK);
 }
@@ -111,7 +131,12 @@ void parse_cmdline(const int ac, const char **av) {
   if(!vcmd)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  while((opt = getopt(ac, (char *const *)av, ":a:bc:dfh:n:o:t:svyD::F::V?")) != -1) {
+  cbak = calloc(1, sizeof *cbak);
+
+  if(!cbak)
+    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+
+  while((opt = getopt(ac, (char *const *)av, ":a:bc:de:fh:n:o:t:svyD::E:F::V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -139,9 +164,23 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->secure++;
 
         break;
+      case 'w':
+        vcmd->writebuf = strdup(optarg);
+
+        if(!vcmd->writebuf)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+        break;
       case 'd':
         vcmd->callback++; /** TODO: make separate CLI flag for callback? **/
         vcmd->debug++;
+
+        break;
+      case 'e':
+        vcmd->encode = strdup(optarg);
+
+        if(!vcmd->encode)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         break;
       case 'v':
@@ -235,6 +274,13 @@ void parse_cmdline(const int ac, const char **av) {
       case 'C': /* CIDR block scan */
       case 'D': /* duplicate headers */
         dup_headers(optarg);
+
+        break;
+      case 'E': /* don't encode these characters */
+        vcmd->noencode = strdup(optarg);
+
+        if(!vcmd->noencode)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         break;
       case 'M': /* method scan */
@@ -332,17 +378,54 @@ void parse_cmdline(const int ac, const char **av) {
         if(!htrequ->vers)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        HTTP_VERSION *prover = unpack_protover(av[optind]);
+        const char *aver = strdup(av[optind]);
+
+        if(!aver) 
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+        HTTP_VERSION *prover = unpack_protover(aver);
 
         memcpy(&(vcmd->version), prover, sizeof *prover);
 
         free(prover);
 
         if(av[++optind]) {
-          htrequ->host = strdup(av[optind]);
+          ahost = strdup(av[optind]);
+
+          if(!ahost)
+            error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+          htrequ->host = strdup(ahost);
 
           if(!htrequ->host)
             error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+          char *restrict prtcol = strchr(ahost, ':');
+
+          if(prtcol) {
+            *prtcol = '\0';
+            // const char *restrict colon_save = prtcol;
+
+            bhost = strdup(av[optind]);
+
+            if(!bhost)
+              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+            if(strchr(++prtcol, ':')) {
+              fjputs_error("Extraneous colon found in HPRT!");
+
+              exit(EX_USAGE);
+            }
+
+            if(strchr(prtcol, ',') || strchr(prtcol, '-')) {
+              char *const prtspc = strdup(prtcol);
+
+              if(!prtspc)
+                error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+              htrequ->prts = parse_portstr(prtspc);
+            }
+          }
         }
       }
     }

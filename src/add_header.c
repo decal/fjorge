@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-PHEADER_LIST add_header(const char *aline) {
+HEADER_LIST *add_header(const char *aline) {
   assert(aline);
 
   register PHEADER_LIST lsp = vcmd->request.hdrs;

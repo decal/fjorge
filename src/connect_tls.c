@@ -81,12 +81,12 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   }
 
   if(!method)
-    error_tls(assl, 0, "TLS_client_method");
+    return error_tls(assl, 0, "TLS_client_method");
 
   actx = SSL_CTX_new(method);
 
   if(!actx)
-    error_tls(assl, 0, "SSL_CTX_new");
+    return error_tls(assl, 0, "SSL_CTX_new");
 
   if(vcmd->verify)
     SSL_CTX_set_info_callback(actx, info_callback);
@@ -94,10 +94,10 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   SSL_CTX_set_default_verify_paths(actx); 
 
   if(vcmd->verify)
-    SSL_CTX_set_verify(actx, SSL_VERIFY_PEER, verify_callback); 
+    SSL_CTX_set_verify(actx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback); 
     /* SSL_CTX_set_verify(actx, SSL_VERIFY_PEER, NULL);  */
   else
-    SSL_CTX_set_verify(actx, SSL_VERIFY_NONE, NULL); 
+    SSL_CTX_set_verify(actx, SSL_VERIFY_NONE | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL); 
 
   /* const long flags = 0;  */
   const long flags = SSL_OP_ALL | SSL_OP_CIPHER_SERVER_PREFERENCE | SSL_OP_SINGLE_DH_USE | SSL_OP_NO_COMPRESSION; 
@@ -107,23 +107,23 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   aweb = BIO_new_ssl_connect(actx);
 
   if(!aweb)
-    error_tls(assl, 0, "BIO_new_ssl_connect");
+    return error_tls(assl, 0, "BIO_new_ssl_connect");
 
   ares = BIO_set_conn_hostname(aweb, ahost);
 
   if(ares <= 0)
-    error_tls(assl, ares, "BIO_set_conn_hostname");
+    return error_tls(assl, ares, "BIO_set_conn_hostname");
 
   // ares = BIO_set_conn_int_port(aweb, &aport); 
   ares = BIO_set_conn_port(aweb, abuf);
 
   if(ares <= 0)
-    error_tls(assl, ares, "BIO_set_conn_port"); 
+    return error_tls(assl, ares, "BIO_set_conn_port"); 
 
   BIO_get_ssl(aweb, &assl);
 
   if(!assl)
-    error_tls(assl, 0, "BIO_get_ssl");
+    return error_tls(assl, 0, "BIO_get_ssl");
 
   const char *version = SSL_get_version(assl);
 
@@ -176,7 +176,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     ares = SSL_set_cipher_list(assl, PREFER_CIPHERS);
 
     if(ares <= 0)
-      error_tls(assl, ares, "SSL_set_cipher_list");
+      return error_tls(assl, ares, "SSL_set_cipher_list");
   }
 
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
@@ -187,33 +187,36 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
 #endif
 
   if(ares <= 0)
-    error_tls(assl, ares, "SSL_set_tlsext_host_name");
+    return error_tls(assl, ares, "SSL_set_tlsext_host_name");
 
   BIO *out = BIO_new_fp(stdout, BIO_NOCLOSE);
 
   if(!out)
-    error_tls(assl, 0, "BIO_new_fp");
+    return error_tls(assl, 0, "BIO_new_fp");
 
   fjprintf_debug("SSL state: %s", SSL_state_string_long(assl));
 
   ares = BIO_do_connect(aweb);
 
   if(ares <= 0)
-    error_tls(assl, ares, "BIO_do_connect");
+    return error_tls(assl, ares, "BIO_do_connect");
 
   fjprintf_debug("SSL state: %s", SSL_state_string_long(assl));
 
   ares = BIO_do_handshake(aweb);
 
   if(ares <= 0)
-    error_tls(assl, ares, "BIO_do_handshake");
+    return error_tls(assl, ares, "BIO_do_handshake");
 
   const X509 *peer = SSL_get_peer_certificate((const SSL *)assl);
 
   if(!peer)
-    error_tls(assl, 0, "SSL_get_peer_certificate");
+    return error_tls(assl, 0, "SSL_get_peer_certificate");
 
   X509_NAME *xnam = X509_get_subject_name(peer);
+
+  if(!xnam)
+    return error_tls(assl, 0, "X509_get_subject_name");
 
   if(vcmd->debug) {
     const int ecnt = X509_NAME_entry_count(xnam);
@@ -221,63 +224,94 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     fjprintf_debug("X509 name entry count: %d", ecnt);
   }
 
-  int lastpos = -1;
-  X509_NAME_ENTRY *e;
+  if(vcmd->verbose) {
+    if(SSL_get_secure_renegotiation_support(assl))
+      fjputs_verbose("Secure Renegotiation IS supported");
+    else
+      fjputs_verbose("Secure Renegotiation IS NOT supported");
 
-  for (;;) {
+    const SSL_CIPHER *ciph = SSL_get_current_cipher(assl);
+
+    if(!ciph)
+      return error_tls(assl, 0, "SSL_get_current_cipher");
+
+    const char *cnam = SSL_CIPHER_get_name(ciph);
+
+    fjprintf_verbose("Cipher Name: %s", cnam);
+
+    int abit = -1;
+
+    const int cbit = SSL_CIPHER_get_bits(ciph, &abit);
+
+    if(cbit > 0) 
+      fjprintf_verbose("Cipher Bits: %d", cbit);
+
+    if(abit > 0)
+      fjprintf_verbose("Cipher Processed: %d", abit);
+
+    if(0) { /* renegotiate */
+      ares = SSL_renegotiate(assl);
+
+      if(ares <= 0)
+        return error_tls(assl, ares, "SSL_renegotiate");
+
+      ares = SSL_do_handshake(assl);
+
+      if(ares <= 0)
+        return error_tls(assl, ares, "SSL_do_handshake");
+
+      if(SSL_renegotiate_pending(assl))
+        fjputs_verbose("SSL renegotiation is pending!");
+      else
+        fjputs_verbose("SSL renegotiation is finished!");
+    }
+  }
+
+  int lastpos = -1;
+
+  do {
     lastpos = X509_NAME_get_index_by_NID(xnam, NID_commonName, lastpos);
 
-    if (lastpos == -1)
+    if(lastpos < 0)
       break;
 
-    e = X509_NAME_get_entry(xnam, lastpos);
-    ASN1_STRING *a = X509_NAME_ENTRY_get_data(e);
-    const unsigned char *c = ASN1_STRING_get0_data(a);
+    X509_NAME_ENTRY *ent = X509_NAME_get_entry(xnam, lastpos);
+    ASN1_STRING *asn = X509_NAME_ENTRY_get_data(ent);
+    const unsigned char *acn = ASN1_STRING_get0_data(asn);
 
-    fjprintf_verbose("Common Name: %s", (char*)c);
-  } 
+    fjprintf_verbose("Common Name: %s", (char*)acn);
+  } while(1);
 
-/*
   const int apos = X509_NAME_get_index_by_NID(xnam, NID_commonName, -1);
 
   fjprintf_debug("X509 name index position: %d %m", apos);
 
   if(apos < 0)
-    error_tls(assl, apos, "X509_NAME_get_index_by_NID");
+    return error_tls(assl, apos, "X509_NAME_get_index_by_NID");
 
-  const X509_NAME_ENTRY *xent = X509_NAME_get_entry(xnam);
+  const X509_NAME_ENTRY *xent = X509_NAME_get_entry(xnam, apos);
   const ASN1_STRING *asn1 = X509_NAME_ENTRY_get_data(xent);
-  unsigned char *cstr = ASN1_STRING_data((ASN1_STRING *)asn1);
+  const unsigned char *cdat = ASN1_STRING_get0_data(asn1);
 
-  fjprintf_verbose("Common Name: %s", cstr);
-*/
+  fjprintf_verbose("Common Name: %s", cdat);
 
-  if(vcmd->debug) {
+  if(vcmd->verbose) { /* Just the certificate */
     X509_NAME_oneline(X509_get_subject_name(peer), abuf, sizeof abuf);
-    fjprintf_debug("Subject: %s", abuf);
+    fjprintf_verbose("Subject: %s", abuf);
     X509_NAME_oneline(X509_get_issuer_name(peer), abuf, sizeof abuf);
-    fjprintf_debug("Issuer: %s", abuf);
-  }
+    fjprintf_verbose("Issuer: %s", abuf);
+  } else if(vcmd->debug) { /* The whole chain */
+    STACK_OF(X509) *x509 = SSL_get_peer_cert_chain(assl);
 
-  /* STACK_OF(X509) *x509 = SSL_get_peer_cert_chain(ssl);
+    for(register int i = 0;i < sk_X509_num(x509);++i) {
+      X509_NAME_oneline(X509_get_subject_name(sk_X509_value(x509, i)), abuf, sizeof abuf);
+      fjprintf_debug("Subject(%2d):%s", i, abuf);
+      X509_NAME_oneline(X509_get_issuer_name(sk_X509_value(x509, i)), abuf, sizeof abuf);
+      fjprintf_debug(" Issuer(%2d):%s", i, abuf);
+    }
+  } 
 
-  int i = 0;
-
-  x509 = SSL_get_peer_cert_chain(assl);
-
-  for(i = 0;i < sk_X509_num(x509);++i) {
-    X509_NAME_oneline(X509_get_subject_name(sk_X509_value(x509, i)), abuf, sizeof abuf);
-    printf("%2d s:%s\n", i, abuf);
-    X509_NAME_oneline(X509_get_issuer_name(sk_X509_value(x509, i)), abuf, sizeof abuf);
-    printf("   i:%s\n", abuf);
-  } */
-
-  /* const char *common_name = X509_VERIFY_PARAM_get0_peername(assl);
-
-  if(!common_name)
-    fjprintf_verbose("Common Name: %s", common_name);
-  else
-    fjputs_verbose("Common Name: (null)"); */
+  output_x509nm("CN", xnam, NID_commonName);
 
   return aweb;
 }

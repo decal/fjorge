@@ -5,11 +5,7 @@ size_t recv_tls(BIO *sockfp) {
   size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
   char *abuf = rbuf, *sptr = NULL;
 
-  if(!sockfp) {
-    fjputs_verbose("Encountered NULL FILE pointer before attempting to read plaintext response!");
-
-    exit(EX_IOERR);
-  }
+  assert(sockfp);
 
   do {
     const int xret = BIO_read(sockfp, rbuf, sizeof rbuf);

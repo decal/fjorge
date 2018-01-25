@@ -23,7 +23,8 @@
 #define BADGE_PORT "*:* "
 #define BADGE_RECV "*>* "
 #define BADGE_SEND "*<* "
-#define BADGE_TLSERROR "*=* "
+#define BADGE_TLSERROR "*!* "
+#define BADGE_CALLBACKERROR "*!* "
 #define BADGE_TRACE "*#* "
 #define BADGE_VERBOSE "*%* "
 
@@ -44,6 +45,14 @@
 
 #if (SSLEAY_VERSION_NUMBER >= 0x0907000L)
 #include<openssl/conf.h>
+#endif
+
+#define OPENSSL_THREAD_DEFINES
+#include<openssl/opensslconf.h>
+#if defined(OPENSSL_THREADS)
+  /* thread support enabled */
+#else
+  /* no thread support */
 #endif
 
 #include<openssl/err.h> 
@@ -102,6 +111,7 @@ typedef struct http_request {
   char *path;
   char *vers;
   char *host;
+  PORT_RANGELIST *prts;
   struct header_list *hdrs;
   char *body;
 } HTTP_REQUEST, *PHTTP_REQUEST, **PPHTTP_REQUEST;
@@ -137,6 +147,9 @@ typedef struct command_line {
   unsigned int portnum; /* port number */
   char *portscan; /* scan ports via Host: header */
   char *servername; /* SNI (Server Name Indication) */
+  char *writebuf; /* write output to 'memory buffer' or @filename */
+  char *encode; /* URL encode chars */
+  char *noencode; /* don't URL encode chars */
 } COMMAND_LINE, *PCOMMAND_LINE, **PPCOMMAND_LINE;
 
 typedef struct http_response {
@@ -147,10 +160,68 @@ typedef struct http_response {
   char *body;
 } HTTP_RESPONSE, *PHTTP_RESPONSE, **PPHTTP_RESPONSE;
 
-extern COMMAND_LINE *vcmd;
+typedef struct output_value {
+  uint16_t http_code;    /* HTTP reply status code */
+  uint16_t conn_code; /* HTTP reply status code from last proxy's CONNECT response */
+  const char *http_reason; /* HTTP reply message */
+  const char *conn_reason; /* HTTP reply message from last proxy's CONNECT response */
+  in_addr_t local_ip; /* IP address for local end of most recent socket connection */
+  in_port_t local_port; /* Port number for local end of most recent socket connection */
+  uint8_t num_connects; /* Number of connections */
+  uint8_t num_redirects; /* Number of redirects */
+  const char *redirect_url; /* Most recent redirect URL from Location response header */
+  in_addr_t remote_ip; /* IP Address for remote end of most recent socket connection */
+  in_port_t remote_port; /* Port number for remote end of most recent socket connection */
+  size_t size_download;
+  size_t size_header;
+  size_t size_request;
+  size_t size_upload;
+  long double speed_download;
+  long double speed_upload;
+  unsigned int ssl_verify_result;
+  suseconds_t time_appconnect;
+  suseconds_t time_connect;
+  suseconds_t time_namelookup;
+  suseconds_t time_pretransfer;
+  suseconds_t time_redirect;
+  suseconds_t time_starttransfer;
+  suseconds_t time_total;
+  const char *url_effective;
+} OUTPUT_VALUE, *POUTPUT_VALUE, **PPOUTPUT_VALUE;
 
+typedef struct cookie_object {
+  const char *name;
+  const char *value;
+  // long max_age;
+  const char *max_age;
+  const char *domain;
+  const char *path;
+  const char *expires;
+  // struct tm *expires;
+  unsigned int secure;
+  unsigned int httponly;
+  const char *samesite; /* "lax" or "strict" */
+} COOKIE_OBJECT, *PCOOKIE_OBJECT, **PPCOOKIE_OBJECT;
+
+typedef int (*cookie_cb)(const char *, const char *, const char *, const char *, const struct tm *);
+
+typedef struct callback_funcptrs { 
+  cookie_cb set_cookie;
+} CALLBACK_FUNCPTRS, *PCALLBACK_FUNCPTRS, **PPCALLBACK_FUNCPTRS;
+
+extern CALLBACK_FUNCPTRS *cbak;
+extern COMMAND_LINE *vcmd;
+extern OUTPUT_VALUE *outv;
+extern BIO *bioout;
+extern BIO *bioerr;
+extern BIO *bioin;
+extern char *ahost;
+extern char *bhost;
+extern char *chost;
+
+void setcb_cookie(cookie_cb);
 noreturn void signal_handler(const int);
-PHEADER_LIST add_header(const char *);
+HEADER_LIST *add_header(const char *);
 char *decode_base64(const char *);
 void dup_headers(const char *);
 char *encode_base64(const char *);
@@ -161,15 +232,17 @@ size_t recv_response(FILE *);
 int connect_tcp(const char *, const unsigned short);
 int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
-void error_callback(const unsigned long, const char *const);
+int error_callback(const unsigned long, const char *);
 void info_callback(const SSL *, int, int);
-size_t count_ports(PORT_RANGELIST *);
-PORT_RANGELIST *parse_ports(const char *);
+size_t count_portlist(PORT_RANGELIST *);
+size_t count_portstr(const char *);
+PORT_RANGELIST *parse_portstr(const char *);
 HostnameValidationResult match_cn(const char *, const X509 *);
 HostnameValidationResult match_san(const char *, const X509 *);
 HostnameValidationResult validate_hostname(const char *, const X509 *);
 int verify_callback(int, X509_STORE_CTX *);
-void error_tls(const SSL *, const int, const char *const);
+BIO *error_tls(const SSL *, const int, const char *const);
+int error_tcp(const char *);
 size_t recv_tls(BIO *);
 int send_tls(BIO *, const HTTP_REQUEST *);
 HTTP_VERSION *unpack_protover(const char *);
@@ -177,7 +250,8 @@ char *pack_protover(const HTTP_VERSION *);
 void parse_cmdline(const int, const char **);
 noreturn void usage_desc(const char *const restrict); 
 const size_t array_length(char **);
-unsigned short *array_ports(PORT_RANGELIST *);
+unsigned short *array_portlist(PORT_RANGELIST *);
+unsigned short *array_portstr(const char *);
 signed char **print_hostnames(const char *restrict *const, const char *restrict *const, size_t);
 void print_options(FILE *);
 void print_trace(void);
@@ -189,6 +263,8 @@ int fjputs_callback(const char *);
 int fjputs_debug(const char *);
 int fjputs_error(const char *);
 int fjputs_verbose(const char *);
-void cbprint_cnname(const char *label, const X509_NAME *const);
-void cbprint_sanname(const char *label, const X509 *const);
+void output_x509nm(const char *label, const X509_NAME *const, const int);
+// void cbprint_cnname(const char *label, const X509_NAME *const);
+void output_x509(const char *label, const X509 *const, const int, const int);
+// void cbprint_sanname(const char *label, const X509 *const);
 #endif

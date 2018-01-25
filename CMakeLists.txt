@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12.2)
 project(fjorge)
 # SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
-SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O1 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
+# SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O1 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
+SET(CMAKE_C_FLAGS "-g -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG")
 SET(CFLAGS CMAKE_C_FLAGS)
 SET(CMAKE_LIBRARY_PATH_FLAG "-L/usr/local/lib")
 SET(ENV{LD_LIBRARY_PATH} "/usr/local/lib:$ENV{LD_LIBRARY_PATH}")
@@ -11,11 +12,14 @@ add_executable(
 	fjorge
   src/add_header.c
   src/array_length.c
-  src/array_ports.c
+  src/array_portlist.c
+  src/array_portstr.c
   src/auth_basic.c
-  src/count_ports.c
+  src/count_portstr.c
+  src/count_portlist.c
   src/dup_headers.c
   src/encode_base64.c
+  src/error_callback.c
   src/fjputs_callback.c
   src/fjprintf_callback.c
   src/fjputs_debug.c
@@ -31,19 +35,20 @@ add_executable(
   src/match_san.c
   src/pack_protover.c
   src/parse_cmdline.c
-  src/parse_ports.c
-  src/cbprint_cnname.c
-  src/error_callback.c
-  src/cbprint_sanname.c
+  src/parse_portstr.c
+  src/output_x509.c
+  src/output_x509nm.c
   src/print_hostnames.c
   src/print_options.c
   src/print_trace.c
   src/recv_response.c
   src/send_request.c
+  src/setcb_cookie.c
   src/signal_handler.c
   src/close_tcp.c
   src/connect_tcp.c
   src/connect_tls.c
+  src/error_tcp.c
   src/error_tls.c
   src/recv_tls.c
   src/send_tls.c

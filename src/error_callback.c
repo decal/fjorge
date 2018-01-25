@@ -1,14 +1,23 @@
 #include"fjorge.h"
 
-void error_callback(const unsigned long err, const char *const label) {
+int error_callback(const unsigned long ernum, const char *label) {
   assert(label);
 
-  const char *const str = ERR_reason_error_string(err);
+  fputs(BADGE_CALLBACKERROR, stderr);
+  fputs(label, stderr);
+  fputs(": ", stderr);
 
-  if(str)
-    fjputs_error(str);
-  else
-    fjprintf_error("%s failed: %lu (0x%lx)", label, err, err);
+  if(ernum) {
+    const char *estr = ERR_reason_error_string(ernum);
 
-  return;
+    fputs(estr, stderr);
+    fputc('\n', stderr);
+  } else {
+    fputs(strerror(errno), stderr);
+    fputc('\n', stderr);
+
+    return errno;
+  }
+
+  return ernum;
 }

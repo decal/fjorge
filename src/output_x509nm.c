@@ -1,6 +1,7 @@
 #include"fjorge.h"
 
-void cbprint_cnname(const char *label, const X509_NAME *const name) {
+// NID_commonName
+void output_x509nm(const char *label, const X509_NAME *const name, const int anid) {
   assert(label);
 
   register int suc = 0;
@@ -10,7 +11,7 @@ void cbprint_cnname(const char *label, const X509_NAME *const name) {
     if(!name)
       break;
 
-    const int idx = X509_NAME_get_index_by_NID((X509_NAME *) name, NID_commonName, -1);
+    const int idx = X509_NAME_get_index_by_NID((X509_NAME *) name, anid, -1);
 
     if(idx <= -1) 
       break;

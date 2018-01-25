@@ -21,11 +21,11 @@ static void error_port(const char *s) {
   exit(EX_DATAERR);
 }
 
-PORT_RANGELIST *parse_ports(const char *portstr) {
+PORT_RANGELIST *parse_portstr(const char *portstr) {
   PORT_RANGELIST *headp = NULL, *portp = NULL;
   const char *current_range = portstr;
   char *endptr = NULL;
-  long int rangestart = 0, rangeend = 0, rangecur = 0;
+  long int rangestart = 0, rangeend = 0, rangecur = 0, rangeprev = 0;
 
   assert(portstr);
 
@@ -49,15 +49,24 @@ PORT_RANGELIST *parse_ports(const char *portstr) {
       if (rangestart < 0 || rangestart > 65535) 
         error_port("Ports must be between 0 and 65535 inclusive");
 
+      if(rangecur && rangecur == rangestart) {
+        fjprintf_error("Duplicate port number detected: %lu", rangecur);
+
+        exit(EX_DATAERR);
+      }
+
+      if(rangeprev && rangestart <= rangeprev) {
+        fjprintf_error("Previous range end %lu is less than or equal to next range start %lu", rangeprev, rangestart);
+
+        exit(EX_DATAERR);
+      }
+
       current_range = endptr;
 
       while(isspace((int)(unsigned char)*current_range)) 
         current_range++;
-    } else {
-      error_port("Range must start with a digit!");
     }
 
-    /* Now I have a rangestart, time to go after rangeend */
     if (!*current_range || *current_range == ',') {
       /* Single port specification */
       rangeend = rangestart;
@@ -96,13 +105,10 @@ PORT_RANGELIST *parse_ports(const char *portstr) {
     }
 
     rangecur = rangeend;
+    rangeprev = rangeend;
 
     /* Now I have a rangestart and a rangeend, so I can add these ports */
     portp->portlo = (unsigned short)rangestart;
-
-    /* while(rangestart <= rangeend)
-      rangestart++; */
-
     portp->porthi = (unsigned short)rangeend;
     portp->nextpn = calloc(1, sizeof *(portp->nextpn));
 
@@ -137,9 +143,9 @@ int main(int argc, char *argv[1]) {
     exit(EX_USAGE);
   }
 
-  p = parse_ports(argv[1]);
+  p = parse_portstr(argv[1]);
 
-  unsigned short *i = array_ports(p);
+  unsigned short *i = array_portlist(p);
 
   register unsigned short *ip = i;
 
