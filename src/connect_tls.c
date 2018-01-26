@@ -249,7 +249,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     if(abit > 0)
       fjprintf_verbose("Cipher Processed: %d", abit);
 
-    if(0) { /* renegotiate */
+    if(1) { /* renegotiate */
       ares = SSL_renegotiate(assl);
 
       if(ares <= 0)
