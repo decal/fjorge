@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ ! -d ./src ]
+  then echo "${0}: directory ./src does not exist!"
+
+  exit 1
+fi
+
+cd src
+
+set -x
+
+gcc -DTEST_DRIVE -I../include -O2 -o encode_base64 encode_base64.c -lcrypto
+gcc -DTEST_DRIVE -I../include -O2 -o decode_base64 decode_base64.c -lcrypto
+gcc -DTEST_DRIVE -I../include -O2 -o encode_url encode_url.c 
+gcc -DTEST_DRIVE -I../include -O2 -o decode_url decode_url.c 
+gcc -DTEST_DRIVE -I../include -O2 -o parse_portstr *_portstr.c *_portlist.c
+
+exit 0

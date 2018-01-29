@@ -15,11 +15,13 @@ add_executable(
   src/array_portlist.c
   src/array_portstr.c
   src/auth_basic.c
+  src/callback_message.c
+  src/callback_verify.c
   src/count_portstr.c
   src/count_portlist.c
   src/dup_headers.c
   src/encode_base64.c
-  src/error_callback.c
+  src/extract_header.c
   src/fjputs_callback.c
   src/fjprintf_callback.c
   src/fjputs_debug.c
@@ -28,11 +30,9 @@ add_executable(
   src/fjprintf_error.c
   src/fjputs_verbose.c
   src/fjprintf_verbose.c
-  src/info_callback.c
+  src/callback_info.c
   src/main_function.c
   src/make_hostnames.c
-  src/match_cn.c
-  src/match_san.c
   src/pack_protover.c
   src/parse_cmdline.c
   src/parse_portstr.c
@@ -41,8 +41,7 @@ add_executable(
   src/print_hostnames.c
   src/print_options.c
   src/print_trace.c
-  src/recv_response.c
-  src/send_request.c
+  src/create_sockbio.c
   src/setcb_cookie.c
   src/signal_handler.c
   src/close_tcp.c
@@ -55,9 +54,7 @@ add_executable(
   src/unpack_protover.c
   src/decode_url.c
   src/encode_url.c
-  src/usage_desc.c
-  src/validate_hostname.c
-  src/verify_callback.c
+  src/describe_usage.c
   include/fjorge.h)
 
 find_library(SSL ssl)

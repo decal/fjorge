@@ -48,9 +48,13 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
 
       lsp = lsp->next;
     } while(lsp);
+  } else {
+    /** TODO: insert default host header */
   }
 
   slen += BIO_puts(abio, CRLF);
+
+  BIO_flush(abio);
 
   if(!vcmd->brief) {
     fputs(BADGE_SEND, stdout);

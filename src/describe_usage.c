@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-noreturn void usage_desc(const char *const restrict arg0) {
+noreturn void describe_usage(const char *const restrict arg0) {
   printf(CRLF "usage: %s HOST[:PORT] VERB PATH VERS [HHST[:HPRT]] [-d] [-s] [-v] [-y] [-z] [-n D.OM] [-h 'NAME: VALU'] [-o OFIL] [-B U:PW] [-D [[NAME,DUPS]|[DUPS,NAME]]" CRLF, arg0);
   fputs(" HOST  numeric IP address or DNS hostname of target web server" CRLF, stdout);
   fputs(" PORT  TCP port number to connect to on destination server" CRLF, stdout);

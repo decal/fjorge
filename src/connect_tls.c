@@ -88,18 +88,32 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(!actx)
     return error_tls(assl, 0, "SSL_CTX_new");
 
-  if(vcmd->verify)
-    SSL_CTX_set_info_callback(actx, info_callback);
+  if(vcmd->verbose) {
+    const long cmod = SSL_CTX_get_session_cache_mode(actx);
+
+    if((cmod & SSL_SESS_CACHE_OFF))
+      fjputs_verbose("No session caching takes place");
+
+    if((cmod & SSL_SESS_CACHE_CLIENT))
+      fjputs_verbose("Client sessions are added to the cache");
+
+    if((cmod & SSL_SESS_CACHE_NO_AUTO_CLEAR))
+      fjputs_verbose("Session cache automatic flushing is disabled");
+  }
+
+  //if(vcmd->verify) {
+    // SSL_CTX_set_info_callback(actx, callback_info);
+    // SSL_CTX_set_msg_callback(actx, msg_callback);
+  //}
 
   SSL_CTX_set_default_verify_paths(actx); 
 
   if(vcmd->verify)
-    SSL_CTX_set_verify(actx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, verify_callback); 
+    SSL_CTX_set_verify(actx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, callback_verify); 
     /* SSL_CTX_set_verify(actx, SSL_VERIFY_PEER, NULL);  */
   else
-    SSL_CTX_set_verify(actx, SSL_VERIFY_NONE | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL); 
+    SSL_CTX_set_verify(actx, SSL_VERIFY_NONE, NULL); 
 
-  /* const long flags = 0;  */
   const long flags = SSL_OP_ALL | SSL_OP_CIPHER_SERVER_PREFERENCE | SSL_OP_SINGLE_DH_USE | SSL_OP_NO_COMPRESSION; 
 
   SSL_CTX_set_options(actx, flags);
@@ -114,7 +128,6 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(ares <= 0)
     return error_tls(assl, ares, "BIO_set_conn_hostname");
 
-  // ares = BIO_set_conn_int_port(aweb, &aport); 
   ares = BIO_set_conn_port(aweb, abuf);
 
   if(ares <= 0)
@@ -124,6 +137,12 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
 
   if(!assl)
     return error_tls(assl, 0, "BIO_get_ssl");
+
+  if(1) {
+    // SSL_set_debug(aweb, 1);
+    SSL_set_msg_callback(assl, callback_message);
+    SSL_set_msg_callback_arg(assl, bioout);
+  }
 
   const char *version = SSL_get_version(assl);
 
@@ -184,15 +203,10 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     ares = SSL_set_tlsext_host_name(assl, vcmd->servername);
   else 
     ares = SSL_set_tlsext_host_name(assl, ahost); 
-#endif
 
   if(ares <= 0)
     return error_tls(assl, ares, "SSL_set_tlsext_host_name");
-
-  BIO *out = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-  if(!out)
-    return error_tls(assl, 0, "BIO_new_fp");
+#endif
 
   fjprintf_debug("SSL state: %s", SSL_state_string_long(assl));
 
@@ -230,6 +244,16 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     else
       fjputs_verbose("Secure Renegotiation IS NOT supported");
 
+    if(SSL_session_reused(assl))
+      fjputs_verbose("SSL session WAS reused");
+    else
+      fjputs_verbose("SSL session WAS NOT reused");
+
+    if(SSL_check_private_key(assl))
+      fjputs_verbose("SSL private key IS consistent");
+    else
+      fjputs_verbose("SSL private key IS NOT consistent");
+
     const SSL_CIPHER *ciph = SSL_get_current_cipher(assl);
 
     if(!ciph)
@@ -249,7 +273,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     if(abit > 0)
       fjprintf_verbose("Cipher Processed: %d", abit);
 
-    if(1) { /* renegotiate */
+    if(0) { /* renegotiate */
       ares = SSL_renegotiate(assl);
 
       if(ares <= 0)
@@ -275,6 +299,8 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     if(lastpos < 0)
       break;
 
+    fjprintf_debug("X509 name index position: %d", lastpos);
+
     X509_NAME_ENTRY *ent = X509_NAME_get_entry(xnam, lastpos);
     ASN1_STRING *asn = X509_NAME_ENTRY_get_data(ent);
     const unsigned char *acn = ASN1_STRING_get0_data(asn);
@@ -284,7 +310,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
 
   const int apos = X509_NAME_get_index_by_NID(xnam, NID_commonName, -1);
 
-  fjprintf_debug("X509 name index position: %d %m", apos);
+  fjprintf_debug("X509 name index position: %d", apos);
 
   if(apos < 0)
     return error_tls(assl, apos, "X509_NAME_get_index_by_NID");
@@ -293,7 +319,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   const ASN1_STRING *asn1 = X509_NAME_ENTRY_get_data(xent);
   const unsigned char *cdat = ASN1_STRING_get0_data(asn1);
 
-  fjprintf_verbose("Common Name: %s", cdat);
+  fjprintf_verbose("Common Name2: %s", cdat);
 
   if(vcmd->verbose) { /* Just the certificate */
     X509_NAME_oneline(X509_get_subject_name(peer), abuf, sizeof abuf);
@@ -311,7 +337,14 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     }
   } 
 
-  output_x509nm("CN", xnam, NID_commonName);
+  if(vcmd->verbose > 1) {
+    output_x509nm(LN_commonName, xnam, NID_commonName);
+    output_x509nm(LN_countryName, xnam, NID_countryName);
+    output_x509nm(LN_localityName, xnam, NID_localityName);
+    output_x509nm(LN_stateOrProvinceName, xnam, NID_stateOrProvinceName);
+    output_x509nm(LN_organizationName, xnam, NID_organizationName);
+    output_x509nm(LN_organizationalUnitName, xnam, NID_organizationalUnitName);
+  } 
 
   return aweb;
 }

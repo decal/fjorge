@@ -38,7 +38,7 @@ static void policies_print(X509_STORE_CTX *ctx)
   nodes_print("User", X509_policy_tree_get0_user_policies(tree));
 }
 
-int verify_callback(int ok, X509_STORE_CTX *ctx)
+int callback_verify(int ok, X509_STORE_CTX *ctx)
 {
   const X509 *xcert = X509_STORE_CTX_get_current_cert(ctx);
   const int error = X509_STORE_CTX_get_error(ctx);

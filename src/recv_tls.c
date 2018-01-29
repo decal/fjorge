@@ -24,7 +24,7 @@ size_t recv_tls(BIO *sockfp) {
 
       if(bret < cnln) {
 _again: 
-        fputs("", stderr);
+        sleep(0);
 
         const int xret = BIO_read(sockfp, &rbuf[bret], sizeof rbuf - bret);
 

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+if [ ! -d src ]
+  then echo 'src directory does not exist!'
+
+  exit 1
+fi
+
+cd src
+
+rm -f encode_base64 decode_base64 encode_url decode_url parse_portstr
+
+exit 0

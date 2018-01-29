@@ -29,10 +29,12 @@
 #define BADGE_VERBOSE "*%* "
 
 /* #define PREFER_CIPHERS "ALL:!MEDIUM:!LOW:!MD5:!SHA1:!RC4:!EXPORT" */
+/** @def PREFER_CIPHERS */
 #define PREFER_CIPHERS "ALL"
 
 #include<stdio.h>
 #include<stdint.h>
+#include<stdbool.h>
 #include<stdlib.h>
 #include<string.h>
 #include<sysexits.h>
@@ -40,6 +42,7 @@
 #include<assert.h>
 #include<arpa/inet.h>
 #include<getopt.h>
+#include<spawn.h>
 #include<openssl/asn1t.h>
 #include<openssl/bio.h>
 
@@ -74,26 +77,14 @@
 #include<error.h>
 #include<zlib.h>
 
-typedef enum {
-  MatchFound,
-  MatchNotFound,
-  NoSANPresent,
-  MalformedCertificate,
-  Error
-} HostnameValidationResult;
-
-typedef struct {
-  int verbose_mode;
-  int verify_depth;
-  int always_continue;
-} mydata_t;
-
+/** @struct Singly linked list of TCP port numbers supplied on the command line via range list syntax */
 typedef struct port_numbers {
   unsigned short portlo;
   unsigned short porthi;
   struct port_numbers *nextpn;
 } PORT_RANGELIST, *PPORT_RANGELIST, **PPPORT_RANGELIST;
 
+/** @struct HTTP protocol version number from reply status line */
 typedef struct protocol_version {
   char *proto;
   char *major;
@@ -101,11 +92,20 @@ typedef struct protocol_version {
   char *minor;
 } HTTP_VERSION, *PHTTP_VERSION, **PPHTTP_VERSION;
 
+/** @struct Singly linked list of HTTP request headers passed on the command line */
 typedef struct header_list {
   char *header;
   struct header_list *next;
 } HEADER_LIST, *PHEADER_LIST, **PPHEADER_LIST;
 
+/** @struct Singly linked list of HTTP response header names/values read from network */
+typedef struct header_line {
+  char *name;
+  char *value;
+  struct header_line *next;
+} HEADER_LINE, *PHEADER_LINE, **PPHEADER_LINE;
+
+/** @struct HTTP request(s) info passed on the command line */
 typedef struct http_request {
   char *verb;
   char *path;
@@ -116,6 +116,7 @@ typedef struct http_request {
   char *body;
 } HTTP_REQUEST, *PHTTP_REQUEST, **PPHTTP_REQUEST;
 
+/** @struct Command line options after parsing */
 typedef struct command_line {
   char *namein;
   FILE *input;
@@ -145,6 +146,7 @@ typedef struct command_line {
   char *hostnam; /* host name */
   char *reorder; /* reorder request headers */
   unsigned int portnum; /* port number */
+  char *portstr; /* port number as string */
   char *portscan; /* scan ports via Host: header */
   char *servername; /* SNI (Server Name Indication) */
   char *writebuf; /* write output to 'memory buffer' or @filename */
@@ -152,6 +154,7 @@ typedef struct command_line {
   char *noencode; /* don't URL encode chars */
 } COMMAND_LINE, *PCOMMAND_LINE, **PPCOMMAND_LINE;
 
+/** @struct HTTP response object */
 typedef struct http_response {
   unsigned short code;
   char *mesg;
@@ -160,6 +163,7 @@ typedef struct http_response {
   char *body;
 } HTTP_RESPONSE, *PHTTP_RESPONSE, **PPHTTP_RESPONSE;
 
+/** @struct output formatting */
 typedef struct output_value {
   uint16_t http_code;    /* HTTP reply status code */
   uint16_t conn_code; /* HTTP reply status code from last proxy's CONNECT response */
@@ -189,6 +193,7 @@ typedef struct output_value {
   const char *url_effective;
 } OUTPUT_VALUE, *POUTPUT_VALUE, **PPOUTPUT_VALUE;
 
+/** @struct HTTP cookie info */
 typedef struct cookie_object {
   const char *name;
   const char *value;
@@ -205,6 +210,7 @@ typedef struct cookie_object {
 
 typedef int (*cookie_cb)(const char *, const char *, const char *, const char *, const struct tm *);
 
+/** @struct callback function pointers */
 typedef struct callback_funcptrs { 
   cookie_cb set_cookie;
 } CALLBACK_FUNCPTRS, *PCALLBACK_FUNCPTRS, **PPCALLBACK_FUNCPTRS;
@@ -222,25 +228,23 @@ extern char *chost;
 void setcb_cookie(cookie_cb);
 noreturn void signal_handler(const int);
 HEADER_LIST *add_header(const char *);
+void callback_message(int, int, int, const void *, size_t, SSL *, void *);
 char *decode_base64(const char *);
 void dup_headers(const char *);
 char *encode_base64(const char *);
 void auth_basic(const char *);
 signed char **make_hostnames(char **, const char *restrict *const, size_t);
-FILE *send_request(const int, const HTTP_REQUEST *);
-size_t recv_response(FILE *);
+BIO *create_sockbio(const int, const HTTP_REQUEST *);
 int connect_tcp(const char *, const unsigned short);
 int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
 int error_callback(const unsigned long, const char *);
-void info_callback(const SSL *, int, int);
+void msg_callback(int, int, int, const void *, size_t, SSL *, void *);
+void callback_info(const SSL *, int, int);
 size_t count_portlist(PORT_RANGELIST *);
 size_t count_portstr(const char *);
 PORT_RANGELIST *parse_portstr(const char *);
-HostnameValidationResult match_cn(const char *, const X509 *);
-HostnameValidationResult match_san(const char *, const X509 *);
-HostnameValidationResult validate_hostname(const char *, const X509 *);
-int verify_callback(int, X509_STORE_CTX *);
+int callback_verify(int, X509_STORE_CTX *);
 BIO *error_tls(const SSL *, const int, const char *const);
 int error_tcp(const char *);
 size_t recv_tls(BIO *);
@@ -255,6 +259,8 @@ unsigned short *array_portstr(const char *);
 signed char **print_hostnames(const char *restrict *const, const char *restrict *const, size_t);
 void print_options(FILE *);
 void print_trace(void);
+HEADER_LINE *extract_header(char *restrict);
+long fjcb_bio_debug(BIO *, int, const char *, int, long, long);
 int fjprintf_callback(const char *, ...);
 int fjprintf_debug(const char *, ...);
 int fjprintf_error(const char *, ...);

@@ -136,6 +136,8 @@ void parse_cmdline(const int ac, const char **av) {
   if(!cbak)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
+  // cbak->set_cookie = 
+
   while((opt = getopt(ac, (char *const *)av, ":a:bc:de:fh:n:o:t:svyD::E:F::V?")) != -1) {
     switch (opt) {
       case 'b':
@@ -244,7 +246,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->protocol = (unsigned int)strtoul(optarg, NULL, 0x0A);
 
         if(errno == ERANGE)
-          usage_desc(*av);
+          describe_usage(*av);
 
         switch(vcmd->protocol) {
           case 1: /* TLSv1 */
@@ -294,14 +296,14 @@ void parse_cmdline(const int ac, const char **av) {
       default:
         fjprintf_error("%c is an incorrect command line flag!", (char)opt);
       case '?':
-        usage_desc(*av);
+        describe_usage(*av);
 
         break;
     }
   }
 
   if(test_arguments(optind, ac)) 
-    usage_desc(*av);
+    describe_usage(*av);
 
   vcmd->hostnam = strdup(av[optind]);
 
@@ -330,12 +332,19 @@ void parse_cmdline(const int ac, const char **av) {
     if(errno == ERANGE) {
       perror("strtoul");
 
-      usage_desc(*av);
+      describe_usage(*av);
     }
 
     if(vcmd->portnum == 443u)
       vcmd->secure++;
   }
+
+  vcmd->portstr = malloc(6);
+
+  if(!vcmd->portstr)
+    error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
+
+  sprintf(vcmd->portstr, "%h", vcmd->portnum);
 
   if(vcmd->secure) {
     if(vcmd->portnum == 80u)
@@ -371,7 +380,7 @@ void parse_cmdline(const int ac, const char **av) {
         htrequ->vers = "HTTP/1.1";
       } else {
         if(test_arguments(optind, ac))
-          usage_desc(*av);
+          describe_usage(*av);
 
         htrequ->vers = strdup(av[optind]);
 

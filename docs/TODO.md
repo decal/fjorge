@@ -1,14 +1,11 @@
 __To-Do List__
 ==========
 
-* make sure CRLF is only sent to network I/O streams
-  - standard I/O should be single UNIX newline
+* merge recv_response and recv_tls so parsing code is all the same!
 
 * doxygen everything
 
 * make vcmd a regular object instead of a pointer
-
-* decide what to do about error_at_line() calls
 
 * make CLI flag for callbacks take string to distinguish between one or more callback function types 
 
@@ -29,8 +26,6 @@ __To-Do List__
 * request body crafting, i.e. https://www.exploit-db.com/exploits/22106/
 
 * output formatting similar to `curl -o`
-
-* fix `mydata_index` in `verify_callback.c`
 
 * implement HTTP/2.0
 

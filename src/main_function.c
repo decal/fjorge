@@ -9,7 +9,32 @@ static void array_puts(char **arr) {
   return;
 }
 
-static char **argv_copy(char **);
+extern char **environ;
+
+void run_cmd(const char **av) {
+  assert(acmd);
+
+  auto pid_t apid = 0;
+
+  fjprintf_debug("Spawning command: %s", *av);
+
+  if(posix_spawn(&apid, *av, NULL, NULL, (char *const *)av, environ)) {
+    fjprintf_error("posix_spawn: %s", strerror(errno));
+
+    return;
+  }
+
+  fjprintf_debug("Child PID: %i", apid);
+
+  /* if (waitpid(pid, &status, 0) != -1) 
+    printf("Child exited with status %i\n", status);
+  else
+    perror("waitpid"); */
+
+  return;
+}
+
+static const char **argv_copy(char **);
 
 /* COMMAND_LINE cmdl; */
 COMMAND_LINE *vcmd = NULL;
@@ -22,14 +47,17 @@ char *ahost = NULL;
 char *bhost = NULL;
 char *chost = NULL;
 
-// int main(int argc, char *argv[], char *envp[]) {
 int main(int argc, char *argv[]) {
   register signed int asfd = 0;
   size_t rlen = 0;
-  FILE *anfp = NULL;
   BIO *atls = NULL;
-  int xargc = argc;
-  char **xargv = argv_copy(argv);
+  const char **xargv = argv_copy(argv);
+
+  if(getenv("FJORGE_DAEMON")) {
+    setsid();
+
+    daemon(true, true);
+  }
 
   signal(SIGSEGV, signal_handler);
   signal(SIGINT,  signal_handler);
@@ -39,8 +67,11 @@ int main(int argc, char *argv[]) {
 
   parse_cmdline(argc, (const char **)argv);
 
-  if(vcmd->debug)
+  if(vcmd->debug) {
+    // OPENSSL_malloc_init();
+
     print_options(stderr);
+  }
 
   bioout = BIO_new_fp(stdout, BIO_NOCLOSE);
 
@@ -66,9 +97,6 @@ int main(int argc, char *argv[]) {
     exit(EX_SOFTWARE);
   }
 
-_top:
-  fjputs_debug("Starting!");
-
   if(vcmd->secure) {
     atls = connect_tls(vcmd->hostnam, vcmd->portnum);
 
@@ -85,62 +113,45 @@ _top:
     }
   }
 
-  if(vcmd->secure) {
-    register unsigned int k = 0;
+  if(!vcmd->secure)
+    atls = create_sockbio(asfd, &(vcmd->request));
 
-    if(!atls)
-      goto _fin;
-
-    /** TODO: pipelining/persistent connections **/
-    /* for(k = 0;k < 2;k++)  */
-      if(send_tls(atls, &(vcmd->request))) {
-        do {
-          rlen = recv_tls(atls);
-
-          switch(rlen) {
-            case 0:
-            case -1:
-              break;
-            case -2:
-              error_tls(NULL, rlen, "BIO_read");
-
-              break;
-            default:
-              fjprintf_debug("Received %lu bytes via encrypted TLS connection..", rlen);
-
-              break;
-          }
-
-          break;
-        } while(BIO_should_retry(atls));
-      }
-  } else {
-    register unsigned int x = 0;
-
-    /* for(x = 0;x < 2;x++) {  */
-      anfp = send_request(asfd, &(vcmd->request));
-
-      if(!anfp) {
-        fjputs_error("Unable to send plaintext request!");
-
-        exit(EX_IOERR);
-      }
-
-      rlen = recv_response(anfp);
-
-      fjprintf_debug("Received %lu bytes via plaintext TCP connection..", rlen);
-    /* } */
-  }
-
-_fin:
-  fjprintf_debug("Finished!");
+  if(!atls)
+    goto _fin;
 
   HTTP_REQUEST *hreq = &(vcmd->request);
 
+  /** TODO: pipelining/persistent connections **/
+  if(send_tls(atls, hreq)) {
+    for(register unsigned int k = 0;k < 10;++k)
+      do {
+        rlen = recv_tls(atls);
+
+        switch(rlen) {
+          case 0:
+          case -1:
+            break;
+          case -2:
+            error_tls(NULL, rlen, "BIO_read");
+
+            break;
+          default:
+            fjprintf_debug("Received %lu bytes via encrypted TLS connection..", rlen);
+
+            break;
+        }
+
+        break;
+      } while(BIO_should_retry(atls));
+  }
+
+_fin:
+  do { } while(0);
+
   if(hreq->prts) {
-    unsigned short *prtz = array_portlist(hreq->prts);
+    unsigned short *const prtz = array_portlist(hreq->prts);
     unsigned short *uspp = prtz;
-    size_t hpsz = 7 + strlen(hreq->host);
+    const size_t hpsz = 7 + strlen(hreq->host);
     char *ohst = strdup(hreq->host);
 
     if(!ohst)
@@ -164,7 +175,9 @@ _fin:
       if(!xargv[5])
        error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-      main(xargc, xargv);
+      putenv("FJORGE_DAEMON=1");
+
+      run_cmd(xargv);
 
       uspp++;
     }
@@ -190,10 +203,10 @@ static size_t argv_len(char **av) {
   return l;
 }
 
-static char **argv_copy(char **argv) {
+static const char **argv_copy(char **argv) {
   char **pp = argv;
   size_t len = 0;
-  char **rr = NULL;
+  const char **rr = NULL;
 
   assert(argv);
 
