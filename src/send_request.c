@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
+int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
   char amsg[BUFSIZ] = { 0x00, };
 
   sprintf(amsg, "%s %s %s" CRLF, sreq->verb, sreq->path, sreq->vers ? sreq->vers : HTT1);
@@ -20,6 +20,21 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
 
     slen += BIO_puts(abio, amsg);
     
+    if(!vcmd->brief) {
+      fputs(BADGE_SEND, stdout);
+      fputs(amsg, stdout);
+    }
+
+    if(vcmd->output)
+      fputs(amsg, vcmd->output);
+  } else {
+    if(vcmd->portstr)
+      sprintf(amsg, "Host: %s:%s" CRLF, vcmd->hostnam, vcmd->portstr);
+    else
+      sprintf(amsg, "Host: %s" CRLF, vcmd->hostnam);
+
+    slen += BIO_puts(abio, amsg);
+
     if(!vcmd->brief) {
       fputs(BADGE_SEND, stdout);
       fputs(amsg, stdout);
@@ -48,13 +63,12 @@ int send_tls(BIO *abio, const HTTP_REQUEST *sreq) {
 
       lsp = lsp->next;
     } while(lsp);
-  } else {
-    /** TODO: insert default host header */
-  }
+  } 
 
   slen += BIO_puts(abio, CRLF);
 
-  BIO_flush(abio);
+  if(BIO_flush(abio) < 1)
+    error_at_line(0, errno, __FILE__, __LINE__, "BIO_flush: %s", strerror(errno));
 
   if(!vcmd->brief) {
     fputs(BADGE_SEND, stdout);

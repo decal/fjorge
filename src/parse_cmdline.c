@@ -19,9 +19,9 @@ static noreturn void show_version(const char *restrict av0) {
 
   puts("");
 
-  puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
-  puts("= fjorge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> =");
-  puts("=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=");
+  puts(INVON "=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=" RESET);
+  puts(INVON "=" INVOFF " fjorge version 1.0 by Derek Callaway <decal {at} sdf (dot) org> " INVON "=" RESET);
+  puts(INVON "=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=" RESET);
 
   puts("");
 
@@ -337,14 +337,14 @@ void parse_cmdline(const int ac, const char **av) {
 
     if(vcmd->portnum == 443u)
       vcmd->secure++;
+
+    vcmd->portstr = malloc(6);
+
+    if(!vcmd->portstr)
+      error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
+
+    sprintf(vcmd->portstr, "%u", vcmd->portnum);
   }
-
-  vcmd->portstr = malloc(6);
-
-  if(!vcmd->portstr)
-    error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
-
-  sprintf(vcmd->portstr, "%h", vcmd->portnum);
 
   if(vcmd->secure) {
     if(vcmd->portnum == 80u)

@@ -16,17 +16,21 @@
 
 #define DEFAULT_HTTPS_PORT 443u
 #define DEFAULT_HTTP_PORT 80u
+#define SHA1SIZ 20
+#define SERIAL_NUM_LEN BUFSIZ
 
-#define BADGE_CALLBACK "*-* "
-#define BADGE_DEBUG "*~* "
-#define BADGE_ERROR "*!* "
-#define BADGE_PORT "*:* "
-#define BADGE_RECV "*>* "
-#define BADGE_SEND "*<* "
-#define BADGE_TLSERROR "*!* "
-#define BADGE_CALLBACKERROR "*!* "
-#define BADGE_TRACE "*#* "
-#define BADGE_VERBOSE "*%* "
+#define BADGE_CALLBACK CYANB "*-*" RESET " "
+#define BADGE_WRITECALLBACK CYANB "<<<" RESET " "
+#define BADGE_READCALLBACK CYANB ">>>" RESET " "
+#define BADGE_DEBUG WHITEB "*~*" RESET " "
+#define BADGE_ERROR REDB "*!*" RESET " " 
+#define BADGE_PORT CYANB "*:*" RESET " "
+#define BADGE_RECV GREENB "*>*" RESET " "
+#define BADGE_SEND GREENB "*<*" RESET " "
+#define BADGE_TLSERROR REDB "*!*" RESET " "
+#define BADGE_CALLBACKERROR REDB "*!*" RESET " "
+#define BADGE_TRACE YELLOWB "*#*" RESET " " 
+#define BADGE_VERBOSE BLUEB "*%*" RESET " "
 
 /* #define PREFER_CIPHERS "ALL:!MEDIUM:!LOW:!MD5:!SHA1:!RC4:!EXPORT" */
 /** @def PREFER_CIPHERS */
@@ -45,6 +49,7 @@
 #include<spawn.h>
 #include<openssl/asn1t.h>
 #include<openssl/bio.h>
+#include<openssl/ocsp.h>
 
 #if (SSLEAY_VERSION_NUMBER >= 0x0907000L)
 #include<openssl/conf.h>
@@ -76,6 +81,8 @@
 #include<errno.h>
 #include<error.h>
 #include<zlib.h>
+
+#include"colors.h"
 
 /** @struct Singly linked list of TCP port numbers supplied on the command line via range list syntax */
 typedef struct port_numbers {
@@ -193,16 +200,37 @@ typedef struct output_value {
   const char *url_effective;
 } OUTPUT_VALUE, *POUTPUT_VALUE, **PPOUTPUT_VALUE;
 
+typedef struct tls_connect {
+  const char *common_name;
+  const char *country_name;
+  const char *locality_name;
+  const char *stateorprovince_name;
+  const char *organization_name;
+  const char *organizationalunit_name;
+  const char *cipher_name;
+  int cipher_bits;
+  const char *cipher_description;
+  const char *cipher_version;
+  const char *cipher_list;
+  int publickey_bits;
+  const char *protocol_version;
+  const char *certificate_fingerprint;
+  int certificate_version;
+  const char *certificate_serialnumber;
+  const char *certificate_signaturealgorithm;
+} TLS_CONNECT, *PTLS_CONNECT, **PPTLS_CONNECT;
+
+typedef struct tcp_connect {
+} TCP_CONNECT, *PTCP_CONNECT, **PPTCP_CONNECT;
+
 /** @struct HTTP cookie info */
 typedef struct cookie_object {
   const char *name;
   const char *value;
-  // long max_age;
-  const char *max_age;
+  const char *max_age; // time_t max_age;
   const char *domain;
   const char *path;
-  const char *expires;
-  // struct tm *expires;
+  const char *expires; // struct tm *expires;
   unsigned int secure;
   unsigned int httponly;
   const char *samesite; /* "lax" or "strict" */
@@ -232,9 +260,11 @@ void callback_message(int, int, int, const void *, size_t, SSL *, void *);
 char *decode_base64(const char *);
 void dup_headers(const char *);
 char *encode_base64(const char *);
+void encode_hex(unsigned char *, void *, const size_t);
 void auth_basic(const char *);
 signed char **make_hostnames(char **, const char *restrict *const, size_t);
 BIO *create_sockbio(const int, const HTTP_REQUEST *);
+char *create_serial(X509 *);
 int connect_tcp(const char *, const unsigned short);
 int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
@@ -244,15 +274,16 @@ void callback_info(const SSL *, int, int);
 size_t count_portlist(PORT_RANGELIST *);
 size_t count_portstr(const char *);
 PORT_RANGELIST *parse_portstr(const char *);
+int callback_ocsp(SSL *, void *);
 int callback_verify(int, X509_STORE_CTX *);
 BIO *error_tls(const SSL *, const int, const char *const);
 int error_tcp(const char *);
-size_t recv_tls(BIO *);
-int send_tls(BIO *, const HTTP_REQUEST *);
+size_t recv_response(BIO *);
+int send_request(BIO *, const HTTP_REQUEST *);
 HTTP_VERSION *unpack_protover(const char *);
 char *pack_protover(const HTTP_VERSION *);
 void parse_cmdline(const int, const char **);
-noreturn void usage_desc(const char *const restrict); 
+noreturn void describe_usage(const char *const restrict); 
 const size_t array_length(char **);
 unsigned short *array_portlist(PORT_RANGELIST *);
 unsigned short *array_portstr(const char *);
@@ -269,8 +300,6 @@ int fjputs_callback(const char *);
 int fjputs_debug(const char *);
 int fjputs_error(const char *);
 int fjputs_verbose(const char *);
-void output_x509nm(const char *label, const X509_NAME *const, const int);
-// void cbprint_cnname(const char *label, const X509_NAME *const);
-void output_x509(const char *label, const X509 *const, const int, const int);
-// void cbprint_sanname(const char *label, const X509 *const);
+char *rewrite_arg2head(char *);
+unsigned char *output_x509nm(const char *label, const X509_NAME *const, const int);
 #endif

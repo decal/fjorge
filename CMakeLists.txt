@@ -15,12 +15,15 @@ add_executable(
   src/array_portlist.c
   src/array_portstr.c
   src/auth_basic.c
+  src/callback_info.c
   src/callback_message.c
+  src/callback_ocsp.c
   src/callback_verify.c
   src/count_portstr.c
   src/count_portlist.c
   src/dup_headers.c
   src/encode_base64.c
+  src/encode_hex.c
   src/extract_header.c
   src/fjputs_callback.c
   src/fjprintf_callback.c
@@ -30,17 +33,17 @@ add_executable(
   src/fjprintf_error.c
   src/fjputs_verbose.c
   src/fjprintf_verbose.c
-  src/callback_info.c
   src/main_function.c
   src/make_hostnames.c
   src/pack_protover.c
   src/parse_cmdline.c
   src/parse_portstr.c
-  src/output_x509.c
   src/output_x509nm.c
   src/print_hostnames.c
   src/print_options.c
   src/print_trace.c
+  src/rewrite_arg2head.c
+  src/create_serial.c
   src/create_sockbio.c
   src/setcb_cookie.c
   src/signal_handler.c
@@ -49,8 +52,8 @@ add_executable(
   src/connect_tls.c
   src/error_tcp.c
   src/error_tls.c
-  src/recv_tls.c
-  src/send_tls.c
+  src/recv_response.c
+  src/send_request.c
   src/unpack_protover.c
   src/decode_url.c
   src/encode_url.c

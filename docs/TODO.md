@@ -1,6 +1,8 @@
 __To-Do List__
 ==========
 
+* add ANSI colors
+
 * merge recv_response and recv_tls so parsing code is all the same!
 
 * doxygen everything
@@ -58,4 +60,6 @@ __To-Do List__
 * --create-dirs   Create necessary local directory hierarchy
 
 * --crlf          Convert LF to CRLF in upload
+
+* [Guile Reference Manual](https://www.gnu.org/software/guile/manual/html_node/Dynamic-FFI.html#Dynamic-FFI "Dynamic FFI")
 

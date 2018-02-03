@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-size_t recv_tls(BIO *sockfp) {
+size_t recv_response(BIO *sockfp) {
   char rbuf[BUFSIZ * 10] = { 0x00 };
   size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
   char *abuf = rbuf, *sptr = NULL;
@@ -10,26 +10,36 @@ size_t recv_tls(BIO *sockfp) {
   do {
     const int xret = BIO_read(sockfp, rbuf, sizeof rbuf);
 
-    if(xret > 0)
-      bret += xret;
+    if(xret <= 0)
+      return -1;
+
+    bret += xret;
   } while(BIO_should_retry(sockfp));
 
   abuf = strtok_r(rbuf, CRLF, &sptr); 
 
-  while(abuf) {
+  while(abuf && *abuf != '\n' && strcmp(abuf, CRLF) && strcmp(abuf, "0\r")) {
     if(!strncasecmp(abuf, "content-length:", 15)) {
       register const char *restrict c1 = strchr(abuf, ' ');
 
       cnln = atoi(++c1);
 
+      if(!cnln)
+        return -1;
+
       if(bret < cnln) {
 _again: 
         sleep(0);
 
+        if(!BIO_should_retry(sockfp))
+          break;
+
         const int xret = BIO_read(sockfp, &rbuf[bret], sizeof rbuf - bret);
 
-        if(xret > 0)
-          bret +=  xret;
+        if(xret <= 0)
+          return -1;
+
+        bret +=  xret;
 
         if(bret < cnln)
           goto _again;
@@ -78,6 +88,9 @@ _again:
       alen += acnt;
 
       if(cnln && alen >= cnln)
+        break;
+
+      if(!strcmp(abuf, CRLF))
         break;
     }
 

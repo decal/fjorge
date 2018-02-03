@@ -18,6 +18,7 @@ noreturn void describe_usage(const char *const restrict arg0) {
   fputs(CRLF, stdout); 
   fputs(" -?  display the command line usage info being shown now" CRLF, stdout);
   fputs(" -d  debug level (may be used more than once)" CRLF, stdout);
+  fputs(" -e  ensure that these characters are encoded (base64, cgi, html)" CRLF, stdout);
 #ifdef OPENSSL_FIPS
   fputs(" -f  enable FIPS (Federal Information Protection Standard) encryption mode" CRLF, stdout);
 #endif
@@ -27,10 +28,16 @@ noreturn void describe_usage(const char *const restrict arg0) {
   fputs(" -v  verbosity level (may be used more than once)" CRLF, stdout);
   fputs(" -h  create an HTTP request header, duplicates permitted" CRLF, stdout);
   fputs(" -n  Set the TLS SNI (Server Name Indication) extension in ClientHello" CRLF, stdout);
+  fputs(" -w  display custom-formatted output string template based on results" CRLF, stdout);
   fputs(" -y  verify server-side certificate chain" CRLF, stdout);
   fputs(" -z  fuzz request line and/or request headers" CRLF, stdout);
   fputs(" -a  Basic authentication string in user:password format" CRLF, stdout);
+  fputs(" -b  brief ouput without document body; minimizes displayed text" CRLF, stdout);
+  fputs(" -c  provide cipher preferences according to CIPHER STRINGS section of ciphers(1) manual" CRLF, stdout);
+  fputs(" -A  specify one or more attack types to unleash against the target" CRLF, stdout);
   fputs(" -D  duplicate HTTP request headers (name,number OR number,name)" CRLF, stdout);
+  fputs(" -E  do not encode this set of characters (base64, cgi, html)", stdout);
+  fputs(" -F  enable random fuzzing of HTTP application layer protocol data", stdout);
   fputs(" -V  show detailed version information and exit" CRLF, stdout);
   fputs(CRLF, stdout);
   printf("ex. %s www.google.com:80 GET /apps HTTP/1.1 localhost:80" CRLF, arg0);

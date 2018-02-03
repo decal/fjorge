@@ -10,20 +10,26 @@
 //  return (c_int >= 48 && c_int <= 57) || (c_int >= 65 && c_int <= 90) || (c_int >= 97 && c_int <= 122);
 //}
 
-#define ENCINCL 0x1
-#define ENCEXCL 0x2
-#define ENCRAND 0x4
-#define ENCURES 0x8
-#define ENCALLC 0x10
-#define ENCNONE 0x20
+typedef enum urlencode_flags {
+  ENCINCL = 0x2,
+  ENCEXCL = 0x4,
+  ENCRAND = 0x8
+} URLENCODE_FLAGS;
+
+static unsigned int istrue_random(void) {
+  return rand() % 2;
+}
 
 /*
- * Unreserved characters according to RFC3986 Section 2.3.
- * @param c character to test for being an element of the unreserved character set
- * @return int non-zero if c falls within the unreserved character set, zero otherwise
+ * Unreserved characters according to RFC3986 Section 2.3
+ * 
  * @see https://tools.ietf.org/html/rfc3986#section-2.3
+ *
  */
-static int isunres(const int c) {
+static int isunres(const int c, unsigned int r) {
+  if(r)
+    return rand() % 2;
+
   if(isalnum(c))
     return 1;
 
@@ -38,93 +44,73 @@ static int isunres(const int c) {
   return 0;
 }
 
-static void encode_url_normal(char *restrict working, const char *restrict input, const int flagz) {
+static char *restrict urlencode_char(const int c, char *restrict working) {
   char encoded[4] = { 0x00 };
 
+  snprintf(encoded, 4, "%%%02x", c);
+
+  *working++ = encoded[0];
+  *working++ = encoded[1];
+  *working++ = encoded[2];
+
+  return working;
+}
+
+static char *restrict urlencode_char_random(const int c, char *restrict working) {
+  if(istrue_random())
+    *working++ = c;
+  else
+    working = urlencode_char(c, working);
+
+  return working;
+}
+
+static void encode_url_helper(char *restrict working, const char *restrict input, const char *const charz, const unsigned int flagz) {
   do {
     const int c = (int)*input;
+    char *x = NULL;
+    
+    if(charz)
+      x = strchr(charz, c);
 
-    if((flagz & ENCALLC) == ENCALLC) {
-      snprintf(encoded, 4, "%%%02x", c);
-      strncpy(working, encoded, 3);
-
-      working += 3;
-
-      continue;
-    } else if((flagz & ENCNONE) == ENCNONE) {
-      *working++ = *input;
-
-      continue;
-    }
-
-    if(isunres(c)) {
-      if((flagz & ENCURES) == ENCURES) { 
-        snprintf(encoded, 4, "%%%02x", c);
-        strncpy(working, encoded, 3);
-
-        working += 3;
-      } else {
+    if(x) { /* include, exclude or random.. can't have multiple set! */
+      if((flagz & ENCINCL) == ENCINCL) 
+        working = urlencode_char(c, working);
+      else if((flagz & ENCEXCL) == ENCEXCL) 
         *working++ = *input;
-      }
+      else if((flagz & ENCRAND) == ENCRAND)
+        working = urlencode_char_random(c, working);
+      else
+        *working++ = *input;
     } else {
-      snprintf(encoded, 4, "%%%02x", c);
-      strncpy(working, encoded, 3);
-
-      working += 3;
-    }
-  } while(*input++);
+      if((flagz & ENCINCL) == ENCINCL)
+        working = urlencode_char(c, working);
+      else if((flagz & ENCEXCL) == ENCEXCL) 
+        *working++ = *input;
+      else if((flagz & ENCRAND) == ENCRAND) {
+        if(isunres(c, 1))
+          *working++ = *input;
+        else
+          working = urlencode_char_random(c, working);
+      } else {
+        if(isunres(c, 0))
+          *working++ = *input;
+        else
+          working = urlencode_char(c, working);
+      }
+    } 
+  } while(*++input);
 
   *working = '\0';
 
   return;
 }
 
-static char *encode_url_helper(char *restrict working, const char *restrict input, const char *const charz, unsigned int flagz) {
-  char *workret = working, encoded[4];
-
-  do {
-    const int c = (int)*input;
-
-    if((flagz & ENCINCL) == ENCINCL && !isunres(c)) {
-      if(strchr(charz, c)) {
-        snprintf(encoded, 4, "%%%02x", c);
-        strncpy(working, encoded, 3);
-
-        working += 3;
-      }
-    } else if((flagz & ENCEXCL) == ENCEXCL && !isunres(c)) {
-      if(!strchr(charz, c)) {
-        snprintf(encoded, 4, "%%%02x", c);
-        strncpy(working, encoded, 3);
-      
-        working += 3;
-      } else if((flagz & ENCURES) == ENCURES && isunres(c)) { 
-        snprintf(encoded, 4, "%%%02x", c);
-        strncpy(working, encoded, 3);
-
-        working += 3;
-      } else {
-        *working++ = *input;
-      }
-    } else {
-      *working++ = *input;
-    }
-  } while(*input++);
-
-  *working = '\0';
-
-  return workret;
-}
-
-static char *encode_url_random(char *restrict working, const char *restrict input, const char *const charz, unsigned int flagz) {
-  return NULL;
-}
-
-char *encode_url(const char *restrict input, const char *const charz, unsigned int flagz) {
+char *encode_url(const char *restrict input, const char *const charz, const unsigned int flagz) {
   assert(input);
 
   const size_t iend = strlen(input);
-  size_t wsiz = iend * 3, csiz = 0;
+  size_t wsiz = iend * 3;
   char *restrict working = NULL;
 
   if(!iend)
@@ -135,46 +121,60 @@ char *encode_url(const char *restrict input, const char *const charz, unsigned i
   if(!working)
     error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
 
-  char *output = working;
+  encode_url_helper(working, input, charz, flagz);
 
-  if(charz) {
-    csiz += strlen(charz);
-  } else {
-    if(!flagz) {
-      encode_url_normal(working, input, flagz);
-    } else { 
-      if((flagz & ENCINCL) == ENCINCL) {
-        encode_url_helper(working, input, charz, flagz);
-      } else {
-        if((flagz & ENCINCL) == ENCINCL) {
-          encode_url_helper(working, input, charz, flagz);  
-        } else {
-          if((flagz & ENCRAND) == ENCRAND)
-            encode_url_random(working, input, charz, flagz);
-          else
-            encode_url_normal(working, input, flagz);
-        }
-      }
-    }
-  }
-
-  return output;
+  return working;
 }
 
 #ifdef TEST_DRIVE
 int main(int argc, char **argv) 
 {
+  char chars[] = "abc123xyz456";
+
+  srand(time(NULL));
+
   if(argc > 1) {
     char *input = argv[1];
-    const char *encoded = encode_url(input);
+    // const char *encoded = encode_url(input, chars, ENCINCL);
+    const char *encoded = encode_url(input, chars, ENCINCL);
+
+    puts(encoded);
+
+    encoded = encode_url(input, chars, ENCEXCL);
+
+    puts(encoded);
+
+    encoded = encode_url(input, chars, ENCRAND);
+
+    puts(encoded);
+
+    encoded = encode_url(input, chars, 0);
+
+    puts(encoded);
+
+    encoded = encode_url(input, 0, ENCINCL);
+
+    puts(encoded);
+
+    encoded = encode_url(input, 0, ENCEXCL);
+
+    puts(encoded);
+
+    encoded = encode_url(input, 0, ENCRAND);
+
+    puts(encoded);
+
+    encoded = encode_url(input, 0, 0);
+
+    puts(encoded);
   } else {
     char *line = NULL;
-    size_t size;
+    size_t size = 0;
 
     while(getline(&line, &size, stdin) != -1) {
       line[strlen(line) - 1] = '\0';
 
-      char *encoded = encode_url(line);
+      char *encoded = encode_url(line, chars, ENCINCL);
 
       puts(encoded);
       free(encoded);

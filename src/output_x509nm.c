@@ -1,7 +1,7 @@
 #include"fjorge.h"
 
 // NID_commonName
-void output_x509nm(const char *label, const X509_NAME *const name, const int anid) {
+unsigned char *output_x509nm(const char *label, const X509_NAME *const name, const int anid) {
   assert(label);
 
   register int suc = 0;
@@ -36,11 +36,8 @@ void output_x509nm(const char *label, const X509_NAME *const name, const int ani
     suc = 1;
   } while(0);
 
-  if(utf)
-    OPENSSL_free(utf);
-
   if(!suc)
     fjprintf_callback(" %s: <not available>", label);
 
-  return;
+  return utf;
 }

@@ -2,14 +2,16 @@
 
 BIO *connect_tls(const char *ahost, const unsigned short aport) { 
   assert(ahost);
+  assert(aport);
 
   SSL_CTX *actx = NULL;
   BIO *aweb = NULL;
   SSL *assl = NULL;
+  TLS_CONNECT *tcon = NULL;
   register int ares = 0;
   char abuf[BUFSIZ] = { 0x0 };
 
-  sprintf(abuf, "%u", aport);
+  sprintf(abuf, "%u", (unsigned int)aport);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
   SSL_library_init();
@@ -99,6 +101,9 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
 
     if((cmod & SSL_SESS_CACHE_NO_AUTO_CLEAR))
       fjputs_verbose("Session cache automatic flushing is disabled");
+
+    SSL_CTX_set_tlsext_status_cb(actx, callback_ocsp);
+    SSL_CTX_set_tlsext_status_arg(actx, bioerr);
   }
 
   //if(vcmd->verify) {
@@ -138,15 +143,31 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(!assl)
     return error_tls(assl, 0, "BIO_get_ssl");
 
+  tcon = calloc(1, sizeof *tcon);
+
+  if(!tcon)
+    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+
   if(1) {
+    unsigned char protos[] = {
+      6, 's', 'p', 'd', 'y', '/', '1',
+      8, 'h', 't', 't', 'p', '/', '0', '.', '9',
+      8, 'h', 't', 't', 'p', '/', '1', '.', '0',
+      8, 'h', 't', 't', 'p', '/', '1', '.', '1'
+    };
+
     // SSL_set_debug(aweb, 1);
+    SSL_set_alpn_protos(assl, protos, sizeof protos);
+    BIO_set_ssl_renegotiate_bytes(aweb, 512);
+    SSL_enable_ct(assl, SSL_CT_VALIDATION_PERMISSIVE);
+    SSL_set_tlsext_status_type(assl, TLSEXT_STATUSTYPE_ocsp);
     SSL_set_msg_callback(assl, callback_message);
     SSL_set_msg_callback_arg(assl, bioout);
   }
 
-  const char *version = SSL_get_version(assl);
+  tcon->protocol_version = SSL_get_version(assl);
 
-  fjprintf_verbose("Protocol: %s", version);
+  fjprintf_verbose("Protocol: %s", tcon->protocol_version);
 
 #if 0
   const size_t client_random_length = SSL_get_client_random(assl, NULL, 0);
@@ -184,6 +205,8 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   X509_VERIFY_PARAM_set1_host(param, "www.google.com", 0); */
  
   if(vcmd->cipher) {
+    tcon->cipher_list = vcmd->cipher;
+
     ares = SSL_set_cipher_list(assl, vcmd->cipher);
 
     if(ares <= 0) {
@@ -192,6 +215,8 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
       exit(EX_USAGE);
     }
   } else {
+    tcon->cipher_list = PREFER_CIPHERS;
+
     ares = SSL_set_cipher_list(assl, PREFER_CIPHERS);
 
     if(ares <= 0)
@@ -222,10 +247,12 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(ares <= 0)
     return error_tls(assl, ares, "BIO_do_handshake");
 
-  const X509 *peer = SSL_get_peer_certificate((const SSL *)assl);
+  X509 *peer = SSL_get_peer_certificate((const SSL *)assl);
 
   if(!peer)
     return error_tls(assl, 0, "SSL_get_peer_certificate");
+
+  // printf("result: %ld\n", SSL_get_verify_result(assl));
 
   X509_NAME *xnam = X509_get_subject_name(peer);
 
@@ -239,39 +266,79 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   }
 
   if(vcmd->verbose) {
+    if(peer) {
+      EVP_PKEY *pktmp = X509_get_pubkey(peer);
+
+      fjprintf_verbose("Server public key is %d bit", EVP_PKEY_bits(pktmp));
+      EVP_PKEY_free(pktmp);
+    }
+
     if(SSL_get_secure_renegotiation_support(assl))
       fjputs_verbose("Secure Renegotiation IS supported");
     else
       fjputs_verbose("Secure Renegotiation IS NOT supported");
 
     if(SSL_session_reused(assl))
-      fjputs_verbose("SSL session WAS reused");
+      fjputs_verbose("TLS session WAS reused");
     else
-      fjputs_verbose("SSL session WAS NOT reused");
+      fjputs_verbose("TLS session WAS NOT reused");
 
     if(SSL_check_private_key(assl))
-      fjputs_verbose("SSL private key IS consistent");
+      fjputs_verbose("Private key IS consistent");
     else
-      fjputs_verbose("SSL private key IS NOT consistent");
+      fjputs_verbose("Private key IS NOT consistent");
+
+    if(SSL_ct_is_enabled(assl))
+      fjputs_verbose("Certificate Transparency IS enabled");
+    else
+      fjputs_verbose("Certificate Transparency IS NOT enabled");
 
     const SSL_CIPHER *ciph = SSL_get_current_cipher(assl);
 
     if(!ciph)
       return error_tls(assl, 0, "SSL_get_current_cipher");
 
-    const char *cnam = SSL_CIPHER_get_name(ciph);
+    tcon->cipher_name = SSL_CIPHER_get_name(ciph);
 
-    fjprintf_verbose("Cipher Name: %s", cnam);
+    fjprintf_verbose("Cipher Name: %s", tcon->cipher_name);
+
+    tcon->cipher_version = SSL_CIPHER_get_version(ciph);
+
+    fjprintf_verbose("Cipher Version: %s", tcon->cipher_version);
+
+    char cbuf[BUFSIZ];
+
+    tcon->cipher_description = SSL_CIPHER_description(ciph, cbuf, sizeof cbuf);
+
+    if(tcon->cipher_description)
+      fjputs_verbose(tcon->cipher_description);
 
     int abit = -1;
 
-    const int cbit = SSL_CIPHER_get_bits(ciph, &abit);
+    tcon->cipher_bits = SSL_CIPHER_get_bits(ciph, &abit);
 
-    if(cbit > 0) 
-      fjprintf_verbose("Cipher Bits: %d", cbit);
+    if(tcon->cipher_bits > 0) 
+      fjprintf_verbose("Cipher Bits: %d", tcon->cipher_bits);
 
     if(abit > 0)
       fjprintf_verbose("Cipher Processed: %d", abit);
+
+    auto unsigned char buf[SHA1SIZ] = { 0x00 };
+    const EVP_MD *digest = EVP_sha1();
+    unsigned int len = 0;
+
+    int rc = X509_digest(peer, digest, buf, &len);
+
+    if (!rc || len != SHA1SIZ)
+      tcon->certificate_fingerprint = "";
+
+    char strbuf[2 * SHA1SIZ + 1] = { 0x00 };
+
+    encode_hex(buf, strbuf, SHA1SIZ);
+
+    tcon->certificate_fingerprint = strbuf;
+    tcon->certificate_version = ((int) X509_get_version(peer)) + 1;
+    tcon->certificate_serialnumber = create_serial(peer);
 
     if(0) { /* renegotiate */
       ares = SSL_renegotiate(assl);
@@ -291,40 +358,13 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     }
   }
 
-  int lastpos = -1;
-
-  do {
-    lastpos = X509_NAME_get_index_by_NID(xnam, NID_commonName, lastpos);
-
-    if(lastpos < 0)
-      break;
-
-    fjprintf_debug("X509 name index position: %d", lastpos);
-
-    X509_NAME_ENTRY *ent = X509_NAME_get_entry(xnam, lastpos);
-    ASN1_STRING *asn = X509_NAME_ENTRY_get_data(ent);
-    const unsigned char *acn = ASN1_STRING_get0_data(asn);
-
-    fjprintf_verbose("Common Name: %s", (char*)acn);
-  } while(1);
-
-  const int apos = X509_NAME_get_index_by_NID(xnam, NID_commonName, -1);
-
-  fjprintf_debug("X509 name index position: %d", apos);
-
-  if(apos < 0)
-    return error_tls(assl, apos, "X509_NAME_get_index_by_NID");
-
-  const X509_NAME_ENTRY *xent = X509_NAME_get_entry(xnam, apos);
-  const ASN1_STRING *asn1 = X509_NAME_ENTRY_get_data(xent);
-  const unsigned char *cdat = ASN1_STRING_get0_data(asn1);
-
-  fjprintf_verbose("Common Name2: %s", cdat);
-
   if(vcmd->verbose) { /* Just the certificate */
     X509_NAME_oneline(X509_get_subject_name(peer), abuf, sizeof abuf);
+
     fjprintf_verbose("Subject: %s", abuf);
+
     X509_NAME_oneline(X509_get_issuer_name(peer), abuf, sizeof abuf);
+
     fjprintf_verbose("Issuer: %s", abuf);
   } else if(vcmd->debug) { /* The whole chain */
     STACK_OF(X509) *x509 = SSL_get_peer_cert_chain(assl);
@@ -337,21 +377,18 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     }
   } 
 
-  if(vcmd->verbose > 1) {
+  if(vcmd->verbose) {
     output_x509nm(LN_commonName, xnam, NID_commonName);
     output_x509nm(LN_countryName, xnam, NID_countryName);
     output_x509nm(LN_localityName, xnam, NID_localityName);
     output_x509nm(LN_stateOrProvinceName, xnam, NID_stateOrProvinceName);
     output_x509nm(LN_organizationName, xnam, NID_organizationName);
     output_x509nm(LN_organizationalUnitName, xnam, NID_organizationalUnitName);
+    
+    long number = SSL_CTX_sess_number(actx);
+
+    fjprintf_verbose("Number of sessions added to the cache: %ld", number);
   } 
 
   return aweb;
 }
-
-#if 0
-int main(void) {
-
-return 0;
-}
-#endif

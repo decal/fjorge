@@ -9,7 +9,7 @@ void callback_message(int write_p, int version, int content_type, const void *bu
   BIO *bio = arg;
   const char *str_write_p, *str_version, *str_content_type = "", *str_details1 = "", *str_details2 = "";
 
-  str_write_p = write_p ? ">>>" : "<<<";
+  str_write_p = write_p ? BADGE_WRITECALLBACK : BADGE_READCALLBACK;
 
   switch (version) {
     case SSL2_VERSION:

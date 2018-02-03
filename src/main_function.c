@@ -122,14 +122,18 @@ int main(int argc, char *argv[]) {
   HTTP_REQUEST *hreq = &(vcmd->request);
 
   /** TODO: pipelining/persistent connections **/
-  if(send_tls(atls, hreq)) {
-    for(register unsigned int k = 0;k < 10;++k)
+  if(send_request(atls, hreq)) {
+    int cont = 1;
+
+    for(register unsigned int k = 0;cont && k < 10;++k)
       do {
-        rlen = recv_tls(atls);
+        rlen = recv_response(atls);
 
         switch(rlen) {
           case 0:
           case -1:
+            cont = 0;
+
             break;
           case -2:
             error_tls(NULL, rlen, "BIO_read");
