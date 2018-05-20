@@ -1,5 +1,7 @@
 #include"fjorge.h"
+#include"strglob.h"
 
+/*
 static void array_puts(char **arr) {
   register char **pp = arr;
 
@@ -8,6 +10,7 @@ static void array_puts(char **arr) {
 
   return;
 }
+*/
 
 extern char **environ;
 
@@ -26,6 +29,25 @@ void run_cmd(const char **av) {
 
   fjprintf_debug("Child PID: %i", apid);
 
+  int status = 0;
+
+  do {
+    const int s = waitpid(apid, &status, 0);
+
+    if(s == -1)
+      exit(EXIT_FAILURE);
+
+    if(WIFEXITED(status))
+      fjprintf_debug("%s[%d]: exited, status=%d\n", *av, apid, WEXITSTATUS(status));
+    else if (WIFSIGNALED(status))
+      fjprintf_debug("%s[%d]: killed by signal %d\n", *av, apid, WTERMSIG(status));
+    else if (WIFSTOPPED(status))
+      fjprintf_debug("%s[%d]: stopped by signal %d\n", *av, apid, WSTOPSIG(status));
+    else if (WIFCONTINUED(status)) 
+      fjprintf_debug("%s[%d]: continued\n", *av, apid);
+  } while(!WIFEXITED(status) && !WIFSIGNALED(status));
+
+
   /* if (waitpid(pid, &status, 0) != -1) 
     printf("Child exited with status %i\n", status);
   else
@@ -36,7 +58,6 @@ void run_cmd(const char **av) {
 
 static const char **argv_copy(char **);
 
-/* COMMAND_LINE cmdl; */
 COMMAND_LINE *vcmd = NULL;
 OUTPUT_VALUE *outv = NULL;
 CALLBACK_FUNCPTRS *cbak = NULL;
@@ -152,39 +173,63 @@ int main(int argc, char *argv[]) {
 _fin:
   do { } while(0);
 
-  if(hreq->prts) {
-    unsigned short *const prtz = array_portlist(hreq->prts);
-    unsigned short *uspp = prtz;
-    const size_t hpsz = 7 + strlen(hreq->host);
-    char *ohst = strdup(hreq->host);
+  // if(hreq->host) {
+  if(1) {
+    STR_GLOB *pugh = cons_str2glob(hreq->host);
+    int **sets = cons_glob2ints(pugh);
+    int *lens = calc_setlens(sets);
+    int *lp = lens;
 
-    if(!ohst)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+    while(*lp != -1)
+      lp++;
 
-    char *ahst = malloc(hpsz);
+    size_t asiz = 1 + lp - lens;
+    int *cset = malloc(asiz * sizeof *cset);
 
-    if(!ahst)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+    if(!cset)
+      exit_verbose("malloc", __FILE__, __LINE__);
 
-    while(uspp && *uspp) {
-      sprintf(ahst, "%s:%d", ahost, *uspp);
+    cartesian_product(sets, lens, cset, asiz--, 0);
 
-      hreq->host = strdup(ahst);
+    char ***kstr = cons_glob2astras(pugh);
+    int *const *crp = results;
+    char *prm = malloc(24);
 
-      if(!hreq->host)
-        error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+    *prm = '\0';
 
-      xargv[5] = strdup(hreq->host);
+    if(kstr && crp)
+      for(register int c = 0;crp[c];++c) {
+        const int *restrict ind = crp[c];
 
-      if(!xargv[5])
-       error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+        *prm = 0x0;
 
-      putenv("FJORGE_DAEMON=1");
+        if(asiz == 1) {
+          strcat(prm, kstr[0][*ind]);
+          // fputs(kstr[0][*ind], stdout);
+        } else {
+          for(register int k = 0;k < asiz;++k, ++ind) {
+            if(!kstr[k] || *ind == -1 || !kstr[k][*ind])
+              break;
 
-      run_cmd(xargv);
+            // fputs(kstr[k][*ind], stdout);
+            strcat(prm, kstr[k][*ind]);
+          }
 
-      uspp++;
-    }
+            hreq->host = strdup(prm);
+
+            if(!hreq->host)
+              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+            xargv[5] = strdup(hreq->host);
+
+            if(!xargv[5])
+              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+            putenv("FJORGE_DAEMON=1");
+
+            run_cmd(xargv);
+        }
+      }
   }
 
   if(error_message_count > 0) /* make this an optional atexit_handler #ifdef DEBUG */
@@ -192,7 +237,7 @@ _fin:
 
   puts("");
 
-  return 0;
+  exit(EXIT_SUCCESS);
 }
 
 static size_t argv_len(char **av) {

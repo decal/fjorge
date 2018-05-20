@@ -151,6 +151,7 @@ typedef struct command_line {
   char *duplicate; /* duplicate request headers */
   char *fuzz; /* fuzz request headers */
   char *hostnam; /* host name */
+  char *intranet; /* private address range to scan Host: header for */
   char *reorder; /* reorder request headers */
   unsigned int portnum; /* port number */
   char *portstr; /* port number as string */
@@ -296,10 +297,10 @@ int fjprintf_callback(const char *, ...);
 int fjprintf_debug(const char *, ...);
 int fjprintf_error(const char *, ...);
 int fjprintf_verbose(const char *, ...);
-int fjputs_callback(const char *);
-int fjputs_debug(const char *);
-int fjputs_error(const char *);
-int fjputs_verbose(const char *);
+int fjputs_callback(const char *const);
+int fjputs_debug(const char *const);
+int fjputs_error(const char *const);
+int fjputs_verbose(const char *const);
 char *rewrite_arg2head(char *);
 unsigned char *output_x509nm(const char *label, const X509_NAME *const, const int);
 #endif

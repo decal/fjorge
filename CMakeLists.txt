@@ -1,26 +1,33 @@
-cmake_minimum_required(VERSION 2.8.12.2)
+cmake_minimum_required(VERSION 2.8.12.2) 
 project(fjorge)
+
+# Compiler command-line flags under development
 # SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
-# SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O1 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
-SET(CMAKE_C_FLAGS "-g -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG")
+
+# Compiler command-line flags in production
+SET(CMAKE_C_FLAGS "-Iinclude -I/usr/local/include -O2 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
 SET(CFLAGS CMAKE_C_FLAGS)
-SET(CMAKE_LIBRARY_PATH_FLAG "-L/usr/local/lib")
-SET(ENV{LD_LIBRARY_PATH} "/usr/local/lib:$ENV{LD_LIBRARY_PATH}")
+SET(CMAKE_LIBRARY_PATH_FLAG "-L/usr/lib/x86_64-linux-gnu -L/usr/local/lib -lstrglob")
+
+SET(ENV{LD_LIBRARY_PATH} "/usr/local/lib:/usr/lib/x86_64-linux-gnu:$ENV{LD_LIBRARY_PATH}")
 add_definitions(-DDBNG_PREFIX=\"${CMAKE_INSTALL_PREFIX}\")
+
+add_custom_target(distclean
+  rm -f -- ./CMakeCache.txt
+  rm -f -- ./CMakeFiles
+  rm -f -- ./cmake_install.cmake
+  rm -f -- ./Makefile
+  COMMENT "Cleaning up build files" VERBATIM)
 
 add_executable(
 	fjorge
   src/add_header.c
   src/array_length.c
-  src/array_portlist.c
-  src/array_portstr.c
   src/auth_basic.c
   src/callback_info.c
   src/callback_message.c
   src/callback_ocsp.c
   src/callback_verify.c
-  src/count_portstr.c
-  src/count_portlist.c
   src/dup_headers.c
   src/encode_base64.c
   src/encode_hex.c
@@ -37,7 +44,6 @@ add_executable(
   src/make_hostnames.c
   src/pack_protover.c
   src/parse_cmdline.c
-  src/parse_portstr.c
   src/output_x509nm.c
   src/print_hostnames.c
   src/print_options.c
@@ -62,10 +68,19 @@ add_executable(
 
 find_library(SSL ssl)
 find_library(CRYPTO crypto)
-link_directories(/usr/local/lib)
+find_library(STRGLOB strglob)
+
+link_directories(/usr/lib/x86_64-linux-gnu /usr/local/lib)
+
 add_library(ssl SHARED IMPORTED)
-set_property(TARGET ssl PROPERTY IMPORTED_LOCATION /usr/local/lib/libssl.so)
+set_property(TARGET ssl PROPERTY IMPORTED_LOCATION /usr/lib/x86_64-linux-gnu/libssl.so)
+
 add_library(crypto SHARED IMPORTED)
-set_property(TARGET crypto PROPERTY IMPORTED_LOCATION /usr/local/lib/libcrypto.so)
-target_link_libraries(fjorge ssl crypto)
+set_property(TARGET crypto PROPERTY IMPORTED_LOCATION /usr/lib/x86_64-linux-gnu/libcrypto.so)
+
+add_library(strglob SHARED IMPORTED)
+set_property(TARGET strglob PROPERTY IMPORTED_LOCATION /usr/local/lib/libstrglob.so)
+
+target_link_libraries(fjorge ssl crypto strglob)
+
 install(TARGETS fjorge DESTINATION bin)

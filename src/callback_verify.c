@@ -81,14 +81,14 @@ int callback_verify(int ok, X509_STORE_CTX *ctx)
     case X509_V_ERR_CERT_NOT_YET_VALID:
     case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
       BIO_puts(bioerr, "notBefore=");
-      ASN1_TIME_print(bioerr, X509_get0_notBefore(xcert)); 
+      ASN1_TIME_print(bioerr, X509_get_notBefore(xcert)); 
       BIO_puts(bioerr, CRLF);
 
       break;
     case X509_V_ERR_CERT_HAS_EXPIRED:
     case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
       BIO_puts(bioerr, "notAfter=");
-      ASN1_TIME_print(bioerr, X509_get0_notAfter(xcert));
+      ASN1_TIME_print(bioerr, X509_get_notAfter(xcert));
       BIO_puts(bioerr, CRLF);
 
       break;

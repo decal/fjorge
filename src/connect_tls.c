@@ -77,7 +77,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
 
       break;
     default:
-      method = TLS_client_method();
+      method = TLSv1_client_method();
 
       break;
   }
@@ -148,7 +148,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(!tcon)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  if(1) {
+  if(0) {
     unsigned char protos[] = {
       6, 's', 'p', 'd', 'y', '/', '1',
       8, 'h', 't', 't', 'p', '/', '0', '.', '9',
@@ -156,13 +156,13 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
       8, 'h', 't', 't', 'p', '/', '1', '.', '1'
     };
 
-    // SSL_set_debug(aweb, 1);
+    /* SSL_set_debug(aweb, 1);
     SSL_set_alpn_protos(assl, protos, sizeof protos);
     BIO_set_ssl_renegotiate_bytes(aweb, 512);
     SSL_enable_ct(assl, SSL_CT_VALIDATION_PERMISSIVE);
     SSL_set_tlsext_status_type(assl, TLSEXT_STATUSTYPE_ocsp);
     SSL_set_msg_callback(assl, callback_message);
-    SSL_set_msg_callback_arg(assl, bioout);
+    SSL_set_msg_callback_arg(assl, bioout); */
   }
 
   tcon->protocol_version = SSL_get_version(assl);
@@ -197,12 +197,12 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 #endif
 
-  // X509_VERIFY_PARAM *param = SSL_get0_param(assl);
+  X509_VERIFY_PARAM *param = SSL_get0_param(assl);
 
-  // X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK_ALL | X509_V_FLAG_X509_STRICT);
+  X509_VERIFY_PARAM_set_flags(param, X509_V_FLAG_CRL_CHECK_ALL | X509_V_FLAG_X509_STRICT);
 
-  /* X509_VERIFY_PARAM_set_hostflags(param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
-  X509_VERIFY_PARAM_set1_host(param, "www.google.com", 0); */
+  X509_VERIFY_PARAM_set_hostflags(param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+  // X509_VERIFY_PARAM_set1_host(param, "www.google.com", 0); 
  
   if(vcmd->cipher) {
     tcon->cipher_list = vcmd->cipher;
@@ -288,10 +288,10 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     else
       fjputs_verbose("Private key IS NOT consistent");
 
-    if(SSL_ct_is_enabled(assl))
+    /* if(SSL_ct_is_enabled(assl))
       fjputs_verbose("Certificate Transparency IS enabled");
     else
-      fjputs_verbose("Certificate Transparency IS NOT enabled");
+      fjputs_verbose("Certificate Transparency IS NOT enabled"); */
 
     const SSL_CIPHER *ciph = SSL_get_current_cipher(assl);
 

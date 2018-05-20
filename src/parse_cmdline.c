@@ -54,7 +54,7 @@ static noreturn void show_version(const char *restrict av0) {
   puts("");
   fputs("Crypto Library =>", stdout);
 
-  for(i = 0;i < 5;++i) {
+  /* for(i = 0;i < 5;++i) {
     const char *const ver = OpenSSL_version(sslver_consts[i]);
 
     if(!ver)
@@ -86,7 +86,7 @@ static noreturn void show_version(const char *restrict av0) {
 
         break;
     }
-  }
+  } */
 
   puts(CRLF);
 
@@ -138,7 +138,7 @@ void parse_cmdline(const int ac, const char **av) {
 
   // cbak->set_cookie = 
 
-  while((opt = getopt(ac, (char *const *)av, ":a:bc:de:fh:n:o:t:svyD::E:F::V?")) != -1) {
+  while((opt = getopt(ac, (char *const *)av, ":a:bc:de:fh:n:o:t:svyD::E:F::P:V?")) != -1) {
     switch (opt) {
       case 'b':
         vcmd->brief++;
@@ -195,6 +195,13 @@ void parse_cmdline(const int ac, const char **av) {
         break;
       case 'F':
         vcmd->fuzz++;
+
+        break;
+      case 'I': /* intranet scan */
+        vcmd->intranet = strdup(optarg);
+
+        if(!vcmd->intranet)
+          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
         break;
       case 'V':
@@ -399,42 +406,15 @@ void parse_cmdline(const int ac, const char **av) {
         free(prover);
 
         if(av[++optind]) {
-          ahost = strdup(av[optind]);
+          const char *ahost = strdup(av[optind]);
 
           if(!ahost)
-            error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+             error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
           htrequ->host = strdup(ahost);
 
           if(!htrequ->host)
             error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-          char *restrict prtcol = strchr(ahost, ':');
-
-          if(prtcol) {
-            *prtcol = '\0';
-            // const char *restrict colon_save = prtcol;
-
-            bhost = strdup(av[optind]);
-
-            if(!bhost)
-              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-            if(strchr(++prtcol, ':')) {
-              fjputs_error("Extraneous colon found in HPRT!");
-
-              exit(EX_USAGE);
-            }
-
-            if(strchr(prtcol, ',') || strchr(prtcol, '-')) {
-              char *const prtspc = strdup(prtcol);
-
-              if(!prtspc)
-                error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-              htrequ->prts = parse_portstr(prtspc);
-            }
-          }
         }
       }
     }
