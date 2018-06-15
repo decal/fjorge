@@ -1,6 +1,6 @@
 #include"fjorge.h"
 
-size_t recv_response(BIO *sockfp) {
+size_t recv_response(BIO *sockfp, const HTTP_REQUEST *sreq) {
   char rbuf[BUFSIZ * 10] = { 0x00 };
   size_t acnt = 0, asiz = 0, alen = 0, cnln = 0, flag = 0, bret = 0;
   char *abuf = rbuf, *sptr = NULL;
@@ -52,7 +52,14 @@ _again:
 
     if(bret) {
       fputs(BADGE_RECV, stdout);
-      puts(abuf);
+      fputs(abuf, stdout);
+
+      if(sreq->host && *(sreq->host)) {
+        fputc(' ', stdout);
+        fputs(sreq->host, stdout);
+      }
+
+      fputc('\n', stdout);
     }
 
     if(!asiz && vcmd->verbose) {

@@ -280,7 +280,7 @@ int callback_ocsp(SSL *, void *);
 int callback_verify(int, X509_STORE_CTX *);
 BIO *error_tls(const SSL *, const int, const char *const);
 int error_tcp(const char *);
-size_t recv_response(BIO *);
+size_t recv_response(BIO *, const HTTP_REQUEST *);
 int send_request(BIO *, const HTTP_REQUEST *);
 HTTP_VERSION *unpack_protover(const char *);
 char *pack_protover(const HTTP_VERSION *);

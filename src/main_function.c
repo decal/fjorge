@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
     for(register unsigned int k = 0;cont && k < 10;++k)
       do {
-        rlen = recv_response(atls);
+        rlen = recv_response(atls, hreq);
 
         switch(rlen) {
           case 0:
