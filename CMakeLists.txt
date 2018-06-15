@@ -5,7 +5,7 @@ project(fjorge)
 # SET(CMAKE_C_FLAGS "-g -pg -Iinclude -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2 -D__STDC_VERSION__=201112L -D__GNUC__")
 
 # Compiler command-line flags in production
-SET(CMAKE_C_FLAGS "-Iinclude -I/usr/local/include -O2 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
+SET(CMAKE_C_FLAGS "-Iinclude -fopenmp -I/usr/local/include -O0 -Wall -ansi -pedantic -std=c11 -DDEBUG -D_FORTIFY_SOURCE=2")
 SET(CFLAGS CMAKE_C_FLAGS)
 SET(CMAKE_LIBRARY_PATH_FLAG "-L/usr/lib/x86_64-linux-gnu -L/usr/local/lib -lstrglob")
 
@@ -32,7 +32,6 @@ add_executable(
   src/dup_headers.c
   src/encode_base64.c
   src/encode_hex.c
-  src/extract_header.c
   src/fjputs_callback.c
   src/fjprintf_callback.c
   src/fjputs_debug.c
@@ -42,19 +41,14 @@ add_executable(
   src/fjputs_verbose.c
   src/fjprintf_verbose.c
   src/main_function.c
-  src/make_hostnames.c
   src/pack_protover.c
   src/parse_cmdline.c
   src/output_x509nm.c
-  src/print_hostnames.c
   src/print_options.c
   src/print_trace.c
-  src/rewrite_arg2head.c
   src/create_serial.c
   src/create_sockbio.c
-  src/setcb_cookie.c
   src/signal_handler.c
-  src/close_tcp.c
   src/connect_tcp.c
   src/connect_tls.c
   src/error_tcp.c
@@ -62,7 +56,6 @@ add_executable(
   src/recv_response.c
   src/send_request.c
   src/unpack_protover.c
-  src/decode_url.c
   src/encode_url.c
   src/describe_usage.c
   include/fjorge.h)

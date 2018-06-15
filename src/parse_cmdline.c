@@ -14,9 +14,6 @@ static int test_arguments(const int optind, const int ac) {
 }
 
 static noreturn void show_version(const char *restrict av0) {
-  static int sslver_consts[] = { SSLEAY_VERSION, SSLEAY_CFLAGS, SSLEAY_BUILT_ON, SSLEAY_PLATFORM, SSLEAY_DIR };
-  register signed int i = 0;
-
   puts("");
 
   puts(INVON "=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=*=%=" RESET);
@@ -52,75 +49,9 @@ static noreturn void show_version(const char *restrict av0) {
 #endif
 
   puts("");
-  fputs("Crypto Library =>", stdout);
-
-  /* for(i = 0;i < 5;++i) {
-    const char *const ver = OpenSSL_version(sslver_consts[i]);
-
-    if(!ver)
-      continue;
-
-    switch(i) { 
-      case 0:
-        printf(" (Version) %s", ver);
-
-        break;
-      case 1:
-        printf(" (Compile Flags) %s", ver);
-
-        break;
-      case 2:
-        printf(" (Built On) %s", ver);
-
-        break;
-      case 3:
-        printf(" (Platform) %s", ver);
-
-        break;
-      case 4:
-        printf(" (Directory) %s", ver);
-
-        break;
-      default:
-        printf(" (UNKNOWN) %s", ver);
-
-        break;
-    }
-  } */
-
-  puts(CRLF);
 
   exit(EX_OK);
 }
-
-/* static void new_header(char **restrict *restrict heads, const char *restrict aline) {
-  size_t acnt = 1;
-  register char **pp = NULL;
-
-  if(!heads || !aline || !*aline) {
-    fputs("*** Invalid input provided to new_header function!" CRLF, stderr);
-    exit(EX_DATAERR);
-  } else {
-    pp = *heads;
-    acnt += array_length(pp);
-  }
-
-  *heads = calloc(acnt, sizeof **heads);
-
-  if(!*heads)
-    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
-  
-  for(pp = *heads;*pp;++pp) {
-    *pp = strdup(aline);
-
-    if(!*pp)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-  }
-
-  *pp = NULL;
-
-  return;
-} */
 
 void parse_cmdline(const int ac, const char **av) {
   int opt = 0;
@@ -399,7 +330,7 @@ void parse_cmdline(const int ac, const char **av) {
         if(!aver) 
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        const HTTP_VERSION *prover = unpack_protover(aver);
+        HTTP_VERSION *const prover = unpack_protover(aver);
 
         memcpy(&(vcmd->version), prover, sizeof *prover);
 

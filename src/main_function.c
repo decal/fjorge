@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
   if(getenv("FJORGE_DAEMON")) {
     setsid();
 
-    daemon(true, true);
+    (int) daemon(true, true);
   }
 
   signal(SIGSEGV, signal_handler);
@@ -174,8 +174,7 @@ _fin:
   do { } while(0);
 
   if(1) {
-    const HAND_GLOB *hand = handle_strglob(hreq->host);
-
+    HAND_GLOB *hand = handle_strglob(hreq->host);
     char **strs = copy_strglob(hand);
 
     // strs += hand->size;

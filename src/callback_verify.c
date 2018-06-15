@@ -40,7 +40,7 @@ static void policies_print(X509_STORE_CTX *ctx)
 
 int callback_verify(int ok, X509_STORE_CTX *ctx)
 {
-  const X509 *xcert = X509_STORE_CTX_get_current_cert(ctx);
+  X509 *const xcert = X509_STORE_CTX_get_current_cert(ctx);
   const int error = X509_STORE_CTX_get_error(ctx);
   const int depth = X509_STORE_CTX_get_error_depth(ctx);
 

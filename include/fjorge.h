@@ -222,8 +222,8 @@ typedef struct tls_connect {
   const char *certificate_signaturealgorithm;
 } TLS_CONNECT, *PTLS_CONNECT, **PPTLS_CONNECT;
 
-typedef struct tcp_connect {
-} TCP_CONNECT, *PTCP_CONNECT, **PPTCP_CONNECT;
+//typedef struct tcp_connect {
+//} TCP_CONNECT, *PTCP_CONNECT, **PPTCP_CONNECT;
 
 /** @struct HTTP cookie info */
 typedef struct cookie_object {
@@ -268,13 +268,13 @@ signed char **make_hostnames(char **, const char *restrict *const, size_t);
 BIO *create_sockbio(const int, const HTTP_REQUEST *);
 char *create_serial(X509 *);
 int connect_tcp(const char *, const unsigned short);
-int close_tcp(const int);
 BIO *connect_tls(const char *, const unsigned short);
 int error_callback(const unsigned long, const char *);
 void msg_callback(int, int, int, const void *, size_t, SSL *, void *);
 void callback_info(const SSL *, int, int);
 size_t count_portlist(PORT_RANGELIST *);
 size_t count_portstr(const char *);
+char *copy_host(char **, const size_t);
 PORT_RANGELIST *parse_portstr(const char *);
 int callback_ocsp(SSL *, void *);
 int callback_verify(int, X509_STORE_CTX *);

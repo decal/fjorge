@@ -148,13 +148,13 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(!tcon)
     error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
 
-  if(0) {
-    unsigned char protos[] = {
+  //if(0) {
+    /* unsigned char protos[] = {
       6, 's', 'p', 'd', 'y', '/', '1',
       8, 'h', 't', 't', 'p', '/', '0', '.', '9',
       8, 'h', 't', 't', 'p', '/', '1', '.', '0',
       8, 'h', 't', 't', 'p', '/', '1', '.', '1'
-    };
+    }; */
 
     /* SSL_set_debug(aweb, 1);
     SSL_set_alpn_protos(assl, protos, sizeof protos);
@@ -163,7 +163,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     SSL_set_tlsext_status_type(assl, TLSEXT_STATUSTYPE_ocsp);
     SSL_set_msg_callback(assl, callback_message);
     SSL_set_msg_callback_arg(assl, bioout); */
-  }
+  //}
 
   tcon->protocol_version = SSL_get_version(assl);
 

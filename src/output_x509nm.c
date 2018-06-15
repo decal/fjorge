@@ -21,7 +21,7 @@ unsigned char *output_x509nm(const char *label, const X509_NAME *const name, con
     if(!entry)
       break;
 
-    const ASN1_STRING *data = X509_NAME_ENTRY_get_data((X509_NAME_ENTRY *) entry);
+    ASN1_STRING *data = X509_NAME_ENTRY_get_data((X509_NAME_ENTRY *) entry);
 
     if(!data)
       break;
@@ -34,7 +34,7 @@ unsigned char *output_x509nm(const char *label, const X509_NAME *const name, con
     fjprintf_callback(" %s: %s", label, utf);
 
     suc = 1;
-  } while(0);
+  } while(false);
 
   if(!suc)
     fjprintf_callback(" %s: <not available>", label);
