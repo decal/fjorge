@@ -28,6 +28,7 @@ add_executable(
   src/callback_message.c
   src/callback_ocsp.c
   src/callback_verify.c
+  src/copy_host.c
   src/dup_headers.c
   src/encode_base64.c
   src/encode_hex.c

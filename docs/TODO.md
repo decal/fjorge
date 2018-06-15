@@ -3,6 +3,8 @@ __To-Do List__
 
 * [Context options and parameters](https://secure.php.net/manual/en/context.php "php.net Language Reference")
 
+* rm `fjcb_bio_debug.c` ?
+
 * add ANSI colors
 
 * merge recv_response and recv_tls so parsing code is all the same!

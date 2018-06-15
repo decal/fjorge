@@ -15,7 +15,7 @@ static void array_puts(char **arr) {
 extern char **environ;
 
 void run_cmd(const char **av) {
-  assert(acmd);
+  assert(av);
 
   auto pid_t apid = 0;
 
@@ -173,63 +173,24 @@ int main(int argc, char *argv[]) {
 _fin:
   do { } while(0);
 
-  // if(hreq->host) {
   if(1) {
-    STR_GLOB *pugh = cons_str2glob(hreq->host);
-    int **sets = cons_glob2ints(pugh);
-    int *lens = calc_setlens(sets);
-    int *lp = lens;
+    const HAND_GLOB *hand = handle_strglob(hreq->host);
 
-    while(*lp != -1)
-      lp++;
+    char **strs = copy_strglob(hand);
 
-    size_t asiz = 1 + lp - lens;
-    int *cset = malloc(asiz * sizeof *cset);
+    // strs += hand->size;
 
-    if(!cset)
-      exit_verbose("malloc", __FILE__, __LINE__);
+    for(register char **pp = strs;*pp;pp += hand->size) {
+      xargv[5] = copy_host(pp, hand->size);
+      // hreq->host = strdup(xargv[5]);
 
-    cartesian_product(sets, lens, cset, asiz--, 0);
+      //if(!hreq->host)
+      //  error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-    char ***kstr = cons_glob2astras(pugh);
-    int *const *crp = results;
-    char *prm = malloc(24);
+      putenv("FJORGE_DAEMON=1");
 
-    *prm = '\0';
-
-    if(kstr && crp)
-      for(register int c = 0;crp[c];++c) {
-        const int *restrict ind = crp[c];
-
-        *prm = 0x0;
-
-        if(asiz == 1) {
-          strcat(prm, kstr[0][*ind]);
-          // fputs(kstr[0][*ind], stdout);
-        } else {
-          for(register int k = 0;k < asiz;++k, ++ind) {
-            if(!kstr[k] || *ind == -1 || !kstr[k][*ind])
-              break;
-
-            // fputs(kstr[k][*ind], stdout);
-            strcat(prm, kstr[k][*ind]);
-          }
-
-            hreq->host = strdup(prm);
-
-            if(!hreq->host)
-              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-            xargv[5] = strdup(hreq->host);
-
-            if(!xargv[5])
-              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-            putenv("FJORGE_DAEMON=1");
-
-            run_cmd(xargv);
-        }
-      }
+      run_cmd(xargv);
+    }
   }
 
   if(error_message_count > 0) /* make this an optional atexit_handler #ifdef DEBUG */

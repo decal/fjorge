@@ -18,10 +18,11 @@ size_t recv_response(BIO *sockfp) {
 
   abuf = strtok_r(rbuf, CRLF, &sptr); 
 
-  while(abuf && *abuf != '\n' && strcmp(abuf, CRLF) && strcmp(abuf, "0\r")) {
+  while(abuf && *abuf != '\n' && *abuf != '\r' && strcmp(abuf, CRLF) && strcmp(abuf, "0\r")) {
     if(!strncasecmp(abuf, "content-length:", 15)) {
       register const char *restrict c1 = strchr(abuf, ' ');
 
+      /*** TODO: can this be an atoi() ? or should it be strtol() */
       cnln = atoi(++c1);
 
       if(!cnln)

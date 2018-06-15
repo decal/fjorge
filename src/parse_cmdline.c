@@ -399,7 +399,7 @@ void parse_cmdline(const int ac, const char **av) {
         if(!aver) 
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        HTTP_VERSION *prover = unpack_protover(aver);
+        const HTTP_VERSION *prover = unpack_protover(aver);
 
         memcpy(&(vcmd->version), prover, sizeof *prover);
 

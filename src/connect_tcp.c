@@ -10,11 +10,11 @@ int connect_tcp(const char *ahost, const unsigned short aport) {
   if(!inetinfo)
     return error_tcp("calloc");
 
-  if(getnameinfo((struct sockaddr *)&inetaddr, sizeof inetaddr, (char *)ahost, strlen(ahost), NULL, 0, 0) < 0) {
+  if(getnameinfo((struct sockaddr *)&inetaddr, sizeof inetaddr, (char *)ahost, strlen(ahost), NULL, 0, 0)) {
     if(0)
       return error_tcp("getnameinfo");
 
-    if(getaddrinfo(ahost, NULL, (const struct addrinfo *)NULL, (struct addrinfo **)&inetinfo) < 0)
+    if(getaddrinfo(ahost, NULL, (const struct addrinfo *)NULL, (struct addrinfo **)&inetinfo))
       return error_tcp("getaddrinfo");
   }
 

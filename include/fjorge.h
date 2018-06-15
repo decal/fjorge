@@ -70,6 +70,7 @@
 #include<openssl/opensslv.h>
 #include<openssl/crypto.h>
 #include<sys/types.h>
+#include<sys/wait.h>
 #include<sys/socket.h>
 #include<sys/queue.h>
 #include<dirent.h>
