@@ -6,7 +6,9 @@
 /* #define _FORITY_SOURCE NDEBUG  */
 
 #define noreturn _Noreturn
-#define CRLF "\r\n"
+#define CRET "\r"
+#define NEWL "\n"
+#define CRLF CRET NEWL
 
 #define HTT1 "HTTP/1.0"
 #define HT11 "HTTP/1.1"
@@ -118,6 +120,7 @@ typedef struct http_request {
   char *verb;
   char *path;
   char *vers;
+  char *mxfw;
   char *host;
   PORT_RANGELIST *prts;
   struct header_list *hdrs;
@@ -152,6 +155,14 @@ typedef struct command_line {
   char *duplicate; /* duplicate request headers */
   char *fuzz; /* fuzz request headers */
   char *hostnam; /* host name */
+  const char *verbpav; /* pointer to argv element containing HTTP verb string glob */
+  const char *hostpav; /* pointer to argv element containing HTTP request header Host: field string glob */
+  const char *pathpav; /* pointer to argv element containing HTTP request-line path string glob */
+  const char *mxfwpav;
+  int acverbv; /* index to argv element containing HTTP verb string glob */
+  int achostv; /* index to argv element containing Host: request header string glob */
+  int acpathv; /* index to argv element containing HTTP path string glob */
+  int acmxfwv; /* index to argv element containing Max-Forwards string glob */
   char *intranet; /* private address range to scan Host: header for */
   char *reorder; /* reorder request headers */
   unsigned int portnum; /* port number */
@@ -170,11 +181,12 @@ typedef struct http_response {
   char *vers;
   char **hdrs;
   char *body;
+  size_t clen;
 } HTTP_RESPONSE, *PHTTP_RESPONSE, **PPHTTP_RESPONSE;
 
 /** @struct output formatting */
 typedef struct output_value {
-  uint16_t http_code;    /* HTTP reply status code */
+  uint16_t http_code; /* HTTP reply status code */
   uint16_t conn_code; /* HTTP reply status code from last proxy's CONNECT response */
   const char *http_reason; /* HTTP reply message */
   const char *conn_reason; /* HTTP reply message from last proxy's CONNECT response */
@@ -255,7 +267,6 @@ extern char *ahost;
 extern char *bhost;
 extern char *chost;
 
-void setcb_cookie(cookie_cb);
 noreturn void signal_handler(const int);
 HEADER_LIST *add_header(const char *);
 void callback_message(int, int, int, const void *, size_t, SSL *, void *);
@@ -265,17 +276,13 @@ char *encode_base64(const char *);
 void encode_hex(unsigned char *, void *, const size_t);
 void auth_basic(const char *);
 signed char **make_hostnames(char **, const char *restrict *const, size_t);
-BIO *create_sockbio(const int, const HTTP_REQUEST *);
+BIO *create_sockbio(const int);
 char *create_serial(X509 *);
 int connect_tcp(const char *, const unsigned short);
 BIO *connect_tls(const char *, const unsigned short);
-int error_callback(const unsigned long, const char *);
-void msg_callback(int, int, int, const void *, size_t, SSL *, void *);
 void callback_info(const SSL *, int, int);
-size_t count_portlist(PORT_RANGELIST *);
-size_t count_portstr(const char *);
-char *copy_host(char **, const size_t);
-PORT_RANGELIST *parse_portstr(const char *);
+char *strcat_glob(char **, const size_t);
+char *strcpy_glob(char **, const size_t);
 int callback_ocsp(SSL *, void *);
 int callback_verify(int, X509_STORE_CTX *);
 BIO *error_tls(const SSL *, const int, const char *const);
@@ -286,14 +293,8 @@ HTTP_VERSION *unpack_protover(const char *);
 char *pack_protover(const HTTP_VERSION *);
 void parse_cmdline(const int, const char **);
 noreturn void describe_usage(const char *const restrict); 
-const size_t array_length(char **);
-unsigned short *array_portlist(PORT_RANGELIST *);
-unsigned short *array_portstr(const char *);
-signed char **print_hostnames(const char *restrict *const, const char *restrict *const, size_t);
 void print_options(FILE *);
 void print_trace(void);
-HEADER_LINE *extract_header(char *restrict);
-long fjcb_bio_debug(BIO *, int, const char *, int, long, long);
 int fjprintf_callback(const char *, ...);
 int fjprintf_debug(const char *, ...);
 int fjprintf_error(const char *, ...);
@@ -303,5 +304,6 @@ int fjputs_debug(const char *const);
 int fjputs_error(const char *const);
 int fjputs_verbose(const char *const);
 char *rewrite_arg2head(char *);
+int spawn_command(const char **);
 unsigned char *output_x509nm(const char *label, const X509_NAME *const, const int);
 #endif

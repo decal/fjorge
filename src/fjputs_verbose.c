@@ -10,7 +10,7 @@ int fjputs_verbose(const char *const emsg) {
     ret += fputs(BLUEF, stdout);
     ret += fputs(emsg, stdout);
     ret += fputs(RESET, stdout);
-    ret += fputs(CRLF, stdout);
+    ret += fputc('\n', stdout);
   }
 
   return ret;

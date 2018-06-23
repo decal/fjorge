@@ -1,8 +1,7 @@
 #include"fjorge.h"
 
-BIO *create_sockbio(const int sock, const HTTP_REQUEST *sreq) {
+BIO *create_sockbio(const int sock) {
   assert(sock);
-  assert(sreq);
 
   BIO *restrict const biosok = BIO_new_fd(sock, BIO_FP_READ | BIO_FP_APPEND | BIO_CLOSE);
 

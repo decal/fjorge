@@ -53,12 +53,13 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
 
       if(!vcmd->brief) {
         fputs(BADGE_SEND, stdout);
-        puts(lsp->header);
+        fputs(lsp->header, stdout);
+        fputc('\n', stdout);
       }
 
       if(vcmd->output) {
         fputs(lsp->header, vcmd->output);
-        fputs(CRLF, vcmd->output);
+        fputc('\n', vcmd->output);
       }
 
       lsp = lsp->next;
@@ -72,11 +73,11 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
 
   if(!vcmd->brief) {
     fputs(BADGE_SEND, stdout);
-    fputs(CRLF, stdout);
+    fputc('\n', stdout);
   }
 
   if(vcmd->output)
-    fputs(CRLF, vcmd->output);
+    fputc('\n', vcmd->output);
 
   return slen;
 }

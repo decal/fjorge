@@ -22,13 +22,11 @@ add_custom_target(distclean
 add_executable(
 	fjorge
   src/add_header.c
-  src/array_length.c
   src/auth_basic.c
   src/callback_info.c
   src/callback_message.c
   src/callback_ocsp.c
   src/callback_verify.c
-  src/copy_host.c
   src/dup_headers.c
   src/encode_base64.c
   src/encode_hex.c
@@ -49,6 +47,7 @@ add_executable(
   src/create_serial.c
   src/create_sockbio.c
   src/signal_handler.c
+  src/strcat_glob.c
   src/connect_tcp.c
   src/connect_tls.c
   src/error_tcp.c
@@ -56,7 +55,6 @@ add_executable(
   src/recv_response.c
   src/send_request.c
   src/unpack_protover.c
-  src/encode_url.c
   src/describe_usage.c
   include/fjorge.h)
 

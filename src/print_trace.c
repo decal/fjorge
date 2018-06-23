@@ -10,13 +10,27 @@ void print_trace (void) {
 
   fjprintf_debug("Obtained %zd stack frames.", size);
 
-  do {
-    fputs(BADGE_TRACE, stderr);
-    fputs(strings[i++], stderr);
-    fputs(CRLF, stderr);
-  } while(i < size);
+  if(!strings)
+    return;
 
-  free(strings);
+  if(vcmd->brief) {
+    fputs(BADGE_TRACE, stderr);
+
+    do {
+      fputs(strings[i++], stderr);
+      fputc(' ', stderr);
+    } while(i < size);
+
+    fputc('\n', stderr);
+  } else {
+    do {
+      fputs(BADGE_TRACE, stderr);
+      fputs(strings[i++], stderr);
+      fputc('\n', stderr);
+    } while(i < size);
+  }
+
+  // free(strings);
 
   return;
 }

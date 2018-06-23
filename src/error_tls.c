@@ -58,7 +58,7 @@ BIO *error_tls(const SSL *ssl, const int ret, const char *const afn) {
 
   fputc(' ', stderr);
   fputs(SSL_state_string_long(ssl), stderr);
-  fputs(CRLF, stderr);
+  fputc('\n', stderr);
 
   return NULL;
 }

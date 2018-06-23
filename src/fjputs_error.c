@@ -9,7 +9,7 @@ int fjputs_error(const char *const emsg) {
   ret += fputs(REDF, stderr);
   ret += fputs(emsg, stderr);
   ret += fputs(RESET, stderr);
-  ret += fputs(CRLF, stderr);
+  ret += fputc('\n', stderr);
 
   return ret;
 }

@@ -3,13 +3,27 @@ __To-Do List__
 
 * [Context options and parameters](https://secure.php.net/manual/en/context.php "php.net Language Reference")
 
-* rm `fjcb_bio_debug.c` ?
+* Display `Location` redirect URL's in brief mode
 
-* add ANSI colors
+* Integer after `Host:` header argument for `Max-Forwards`
+
+* Implement abbreviations for common SSRF request headers like: `X-Forwarded-For`, `Client-IP`, etc.
+  - xff = X-Forwarded-For
+  - ff = Forwarded-For
+  - f = Forwarded
+  - xf = X-Forwarded
+  - cip = Client-IP
+  - etc.
+
+* use libconfuse to configure TLS and HTTP behaviors
+
+* replace all non-network CRLF with '\n'
+
+* update ANSI colors in new output strings
 
 * merge recv_response and recv_tls so parsing code is all the same!
 
-* doxygen everything
+* doxygen _everything_
 
 * make vcmd a regular object instead of a pointer
 

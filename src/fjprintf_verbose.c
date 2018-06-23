@@ -18,7 +18,7 @@ int fjprintf_verbose(const char *fmt, ...) {
     va_end(arg);
 
     ret += fputs(RESET, stdout);
-    ret += fputs(CRLF, stdout);
+    ret += fputc('\n', stdout);
   }
 
   return ret;

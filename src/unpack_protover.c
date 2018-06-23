@@ -39,7 +39,6 @@ HTTP_VERSION *unpack_protover(const char *pv) {
 
   if(*aptr) {
     *aptr = '\0';
-
     aret->major = strdup(dlm1);
 
     if(!aret->major)
@@ -49,6 +48,8 @@ HTTP_VERSION *unpack_protover(const char *pv) {
 
     if(!aret->minor)
       error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+    *--aptr = '.';
   }
 
   return aret;

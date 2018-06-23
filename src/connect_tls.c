@@ -90,6 +90,8 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   if(!actx)
     return error_tls(assl, 0, "SSL_CTX_new");
 
+  SSL_CTX_set_session_cache_mode(actx, SSL_SESS_CACHE_NO_AUTO_CLEAR | SSL_SESS_CACHE_BOTH);
+
   if(vcmd->verbose) {
     const long cmod = SSL_CTX_get_session_cache_mode(actx);
 
@@ -99,8 +101,20 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     if((cmod & SSL_SESS_CACHE_CLIENT))
       fjputs_verbose("Client sessions are added to the cache");
 
+    if((cmod & SSL_SESS_CACHE_SERVER))
+      fjputs_verbose("Server sessions are added to the cache");
+
     if((cmod & SSL_SESS_CACHE_NO_AUTO_CLEAR))
       fjputs_verbose("Session cache automatic flushing is disabled");
+
+    if((cmod & SSL_SESS_CACHE_NO_INTERNAL_LOOKUP))
+      fjputs_verbose("No lookups in internal session cache");
+
+    if((cmod & SSL_SESS_CACHE_NO_INTERNAL_STORE))
+      fjputs_verbose("No storage in internal session cache");
+
+    if((cmod & SSL_SESS_CACHE_NO_INTERNAL))
+      fjputs_verbose("No lookups or storage in internal session cache");
 
     SSL_CTX_set_tlsext_status_cb(actx, callback_ocsp);
     SSL_CTX_set_tlsext_status_arg(actx, bioerr);
@@ -339,6 +353,29 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
     tcon->certificate_fingerprint = strbuf;
     tcon->certificate_version = ((int) X509_get_version(peer)) + 1;
     tcon->certificate_serialnumber = create_serial(peer);
+
+    const char *idhint = SSL_get_psk_identity_hint(assl);
+
+    if(idhint && *idhint)
+      fjprintf_verbose("PSK Identity Hint: %s\n", idhint);
+
+    const char *identi = SSL_get_psk_identity(assl);
+
+    if(identi && *identi)
+      fjprintf_verbose("PSK Identity: %s\n", identi);
+
+    const char *rstate = SSL_rstate_string_long(assl);
+    
+    if(rstate)
+      fjprintf_verbose("SSL read state: %s\n", rstate);
+
+    STACK_OF(X509_NAME) *astack = SSL_get_client_CA_list(assl);
+
+    if(astack) {
+      if(vcmd->verbose) {
+        fputs("Not implemented\n", stdout);
+      }
+    }
 
     if(0) { /* renegotiate */
       ares = SSL_renegotiate(assl);

@@ -11,7 +11,7 @@ size_t recv_response(BIO *sockfp, const HTTP_REQUEST *sreq) {
     const int xret = BIO_read(sockfp, rbuf, sizeof rbuf);
 
     if(xret <= 0)
-      return -1;
+      return bret;
 
     bret += xret;
   } while(BIO_should_retry(sockfp));
@@ -54,9 +54,13 @@ _again:
       fputs(BADGE_RECV, stdout);
       fputs(abuf, stdout);
 
-      if(sreq->host && *(sreq->host)) {
+      if(!asiz && sreq->host && *(sreq->host)) {
         fputc(' ', stdout);
+        fputs(CYANF, stdout);
+        fprintf(stdout, "%lu ", bret);
+        fputs(BLUEF, stdout);
         fputs(sreq->host, stdout);
+        fputs(RESET, stdout);
       }
 
       fputc('\n', stdout);
@@ -72,7 +76,6 @@ _again:
           register unsigned long int acod = strtoul(s1, NULL, 10);
 
           *s2 = '\0';
-   
           acod = strtoul(s1, NULL, 10);
 
           if(errno != ERANGE && vcmd->verbose)
@@ -86,8 +89,8 @@ _again:
       fputs(CRLF, vcmd->output);
     }
 
-    if(!asiz && vcmd->brief) 
-      break;
+    //if(!asiz && vcmd->brief) 
+    //  break;
 
     acnt = strlen(abuf);
     asiz += acnt;

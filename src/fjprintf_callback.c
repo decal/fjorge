@@ -18,7 +18,7 @@ int fjprintf_callback(const char *fmt, ...) {
     va_end(arg);
 
     ret += fputs(RESET, stderr);
-    ret += fputs(CRLF, stderr);
+    ret += fputc('\n', stderr);
   }
 
   return ret;

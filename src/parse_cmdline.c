@@ -242,7 +242,7 @@ void parse_cmdline(const int ac, const char **av) {
 
   if(test_arguments(optind, ac)) 
     describe_usage(*av);
-
+ 
   vcmd->hostnam = strdup(av[optind]);
 
   if(!vcmd->hostnam)
@@ -300,6 +300,8 @@ void parse_cmdline(const int ac, const char **av) {
     htrequ->path = "/";
     htrequ->vers = "HTTP/1.1";
   } else {
+    vcmd->acverbv = optind;
+    vcmd->verbpav = av[optind];
     htrequ->verb = strdup(av[optind]);
 
     if(!htrequ->verb)
@@ -309,6 +311,8 @@ void parse_cmdline(const int ac, const char **av) {
       htrequ->path = "/";
       htrequ->vers = "HTTP/1.1";
     } else {
+      vcmd->acpathv = optind;
+      vcmd->pathpav = av[optind];
       htrequ->path = strdup(av[optind]);
 
       if(!htrequ->path)
@@ -325,27 +329,28 @@ void parse_cmdline(const int ac, const char **av) {
         if(!htrequ->vers)
           error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
 
-        const char *aver = strdup(av[optind]);
-
-        if(!aver) 
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-        HTTP_VERSION *const prover = unpack_protover(aver);
+        HTTP_VERSION *const prover = unpack_protover(htrequ->vers);
 
         memcpy(&(vcmd->version), prover, sizeof *prover);
 
-        free(prover);
+        // free(prover);
 
-        if(av[++optind]) {
-          const char *ahost = strdup(av[optind]);
-
-          if(!ahost)
-             error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
-
-          htrequ->host = strdup(ahost);
+        if(av[++optind] && optind != ac) { /* HTTP Version */
+          vcmd->achostv = optind;
+          vcmd->hostpav = av[optind];
+          htrequ->host = strdup(av[optind]);
 
           if(!htrequ->host)
             error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+
+          if(av[++optind] && optind != ac) { /* Max-Forwards */
+            vcmd->acmxfwv = optind;
+            vcmd->mxfwpav = av[optind];
+            htrequ->mxfw = strdup(av[optind]);
+
+            if(!htrequ->mxfw)
+              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          }
         }
       }
     }

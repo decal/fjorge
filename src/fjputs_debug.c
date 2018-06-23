@@ -10,7 +10,7 @@ int fjputs_debug(const char *const emsg) {
     ret += fputs(WHITEF, stderr);
     ret += fputs(emsg, stderr);
     ret += fputs(RESET, stderr);
-    ret += fputs(CRLF, stderr);
+    ret += fputc('\n', stderr);
   }
 
   return ret;
