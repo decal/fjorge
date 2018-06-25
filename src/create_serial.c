@@ -36,7 +36,7 @@ char *create_serial(X509 *acrt) {
   char *aret = strdup(sernum);
 
   if(!aret)
-    error_at_line(0, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+    exit_verbose("strdup", __FILE__, __LINE__);
 
   return aret;
 }

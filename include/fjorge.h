@@ -86,6 +86,9 @@
 #include<zlib.h>
 
 #include"colors.h"
+#include"strglob.h"
+
+#define exit_verbose(AFUNC, AFILE, ALINE) perror(AFUNC)
 
 /** @struct Singly linked list of TCP port numbers supplied on the command line via range list syntax */
 typedef struct port_numbers {
@@ -267,7 +270,7 @@ extern char *ahost;
 extern char *bhost;
 extern char *chost;
 
-noreturn void signal_handler(const int);
+void signal_handler(const int);
 HEADER_LIST *add_header(const char *);
 void callback_message(int, int, int, const void *, size_t, SSL *, void *);
 char *decode_base64(const char *);

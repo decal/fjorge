@@ -9,13 +9,13 @@ HEADER_LIST *add_header(const char *aline) {
     vcmd->request.hdrs = calloc(1, sizeof *(vcmd->request.hdrs));
 
     if(!vcmd->request.hdrs)
-      error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+      exit_verbose("calloc", __FILE__, __LINE__);
 
     lsp = vcmd->request.hdrs;
     lsp->header = strdup(aline);
 
     if(!lsp->header)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+      exit_verbose("strdup", __FILE__, __LINE__);
     
     return lsp;
   }
@@ -26,13 +26,13 @@ HEADER_LIST *add_header(const char *aline) {
   lsp->next = calloc(1, sizeof *(lsp->next));
 
   if(!lsp->next)
-    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+    exit_verbose("calloc", __FILE__, __LINE__);
 
   lsp = lsp->next;
   lsp->header = strdup(aline);
 
   if(!lsp->header)
-    error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+    exit_verbose("strdup", __FILE__, __LINE__);
 
   return lsp;
 }

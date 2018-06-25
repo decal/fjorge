@@ -160,7 +160,7 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   tcon = calloc(1, sizeof *tcon);
 
   if(!tcon)
-    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+    exit_verbose("calloc", __FILE__, __LINE__);
 
   //if(0) {
     /* unsigned char protos[] = {
@@ -250,6 +250,8 @@ BIO *connect_tls(const char *ahost, const unsigned short aport) {
   fjprintf_debug("SSL state: %s", SSL_state_string_long(assl));
 
   ares = BIO_do_connect(aweb);
+
+  fjprintf_debug("SSL state: %s", SSL_state_string_long(assl));
 
   if(ares <= 0)
     return error_tls(assl, ares, "BIO_do_connect");

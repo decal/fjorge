@@ -47,13 +47,13 @@ add_executable(
   src/create_serial.c
   src/create_sockbio.c
   src/signal_handler.c
-  src/strcat_glob.c
   src/connect_tcp.c
   src/connect_tls.c
   src/error_tcp.c
   src/error_tls.c
   src/recv_response.c
   src/send_request.c
+  src/strcat_glob.c
   src/unpack_protover.c
   src/describe_usage.c
   include/fjorge.h)

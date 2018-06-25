@@ -15,14 +15,15 @@ BIO *bioin = NULL;
 /* char *request_header_host = NULL, *tls_sni_host = NULL, *request_line_host = NULL; */
 
 int main(int argc, char *argv[]) {
+  char **const xargv = argv_copy(argv);
   BIO *atls = NULL;
-  char **xargv = argv_copy(argv);
 
   if(getenv("FJORGE_DAEMON")) {
     setsid();
 
-    (int) daemon(true, true);
-  }
+    daemon(true, true);
+  } 
+    
 
   signal(SIGSEGV, signal_handler);
   signal(SIGINT,  signal_handler);
@@ -41,7 +42,7 @@ int main(int argc, char *argv[]) {
   bioout = BIO_new_fp(stdout, BIO_NOCLOSE);
 
   if(!bioout) {
-    fjputs_error("Unable to create a BIO for stdout!");
+    fjputs_error("Unable to create stdout BIO!");
 
     return EX_SOFTWARE;
   }
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
   bioerr = BIO_new_fp(stderr, BIO_NOCLOSE);
 
   if(!bioerr) {
-    fjputs_error("Unable to create a BIO for stderr!");
+    fjputs_error("Unable to create stderr BIO!");
 
     return EX_SOFTWARE;
   }
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
   bioin = BIO_new_fp(stdin, BIO_NOCLOSE);
 
   if(!bioin) {
-    fjputs_error("Unable to create a BIO for stdin!");
+    fjputs_error("Unable to create stdin BIO!");
 
     return EX_SOFTWARE;
   }
@@ -83,9 +84,10 @@ int main(int argc, char *argv[]) {
   if(!atls)
     goto _fin;
 
-  HTTP_REQUEST *hreq = &(vcmd->request);
+  HTTP_REQUEST *const hreq = &(vcmd->request);
 
   /** TODO: pipelining/persistent connections **/
+
   if(send_request(atls, hreq)) {
     for(register unsigned int k = 0;k < 10;++k) {
       do {
@@ -100,9 +102,11 @@ int main(int argc, char *argv[]) {
           case -2:
             error_tls(NULL, rlen, "BIO_read");
 
-            break;
+            k = 10;
+
+            continue;
           default:
-            fjprintf_debug("Received %lu bytes via encrypted TLS connection..", rlen);
+            fjprintf_debug("Received %lu bytes", rlen);
 
             break;
         }
@@ -112,33 +116,35 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  BIO_reset(atls);
 _fin:
+
   do { } while(false);
 
   if(!getenv("FJORGE_DAEMON")) {
-    HAND_GLOB *host_hagl = handle_strglob(hreq->host);
-    char **host_strs = copy_strglob(host_hagl);
-    HAND_GLOB *verb_hagl = handle_strglob(hreq->verb);
-    char **verb_strs = copy_strglob(verb_hagl);
-    HAND_GLOB *path_hagl = handle_strglob(hreq->path);
-    char **path_strs = copy_strglob(path_hagl);
+    HAND_GLOB *restrict const host_hagl = handle_strglob(hreq->host);
+    char **const host_strs = copy_strglob(host_hagl);
+    HAND_GLOB *restrict const verb_hagl = handle_strglob(hreq->verb);
+    char **const verb_strs = copy_strglob(verb_hagl);
+    HAND_GLOB *restrict const path_hagl = handle_strglob(hreq->path);
+    char **const path_strs = copy_strglob(path_hagl);
 
     register int host_cnt = 0;
 
     for(register char **restrict host_pp = host_strs;*host_pp;host_pp++, host_cnt++) {
-      char *ahost = strcat_glob(host_pp, host_hagl->size);
+      char *const ahost = strcat_glob(host_pp, host_hagl->size);
 
       xargv[vcmd->achostv] = ahost;
       vcmd->hostpav = ahost;
 
       for(register char **restrict verb_pp = verb_strs;*verb_pp;verb_pp++) {
-        char *averb = strcat_glob(verb_pp, verb_hagl->size);
+        char *const averb = strcat_glob(verb_pp, verb_hagl->size);
 
         vcmd->verbpav = averb;
         xargv[vcmd->acverbv] = averb;
 
         for(register char **restrict path_pp = path_strs;*path_pp;path_pp++) {
-          char *apath = strcat_glob(path_pp, path_hagl->size); 
+          char *const apath = strcat_glob(path_pp, path_hagl->size); 
 
           vcmd->pathpav = apath;
           xargv[vcmd->acpathv] = apath;
@@ -153,10 +159,10 @@ _fin:
         }
       } 
     }
-  }
+  } 
 
   if(error_message_count > 0) /* make this an optional atexit_handler #ifdef DEBUG */
-    fjprintf_debug("*** %u error messages!", error_message_count);
+    fjprintf_debug("%u total error messages!", error_message_count);
 
   
   return EXIT_SUCCESS;
@@ -180,7 +186,7 @@ static char **argv_copy(char **argv) {
   char **rr = malloc(++len * sizeof *rr);
 
   if(!rr)
-    error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
+    exit_verbose("malloc", __FILE__, __LINE__);
 
   register int i = 0;
 
@@ -191,7 +197,7 @@ static char **argv_copy(char **argv) {
     rr[i] = strdup(argv[i]);
 
     if(!rr[i])
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+      exit_verbose("strdup", __FILE__, __LINE__);
   }
 
   rr[i] = NULL;

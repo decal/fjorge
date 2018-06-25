@@ -7,7 +7,7 @@ void auth_basic(const char *b64str) {
   char *restrict aret = malloc(1 + strlen(auth_head) + strlen(b64str));
 
   if(!aret)
-    error_at_line(1, errno, __FILE__, __LINE__, "basic_auth: %s", strerror(errno));
+    exit_verbose("malloc", __FILE__, __LINE__);
 
   sprintf(aret, "%s%s", auth_head, b64str);
  

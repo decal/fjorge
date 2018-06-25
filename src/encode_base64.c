@@ -4,16 +4,16 @@ char *encode_base64 (const char *asc_str) {
   assert(asc_str);
 
   const size_t asc_len = strlen(asc_str);
-  register size_t b64_len = (((asc_len + 2) / 3) * 4);
-  char *b64_str = malloc (++b64_len);
+  const size_t b64_len = (((asc_len + 2) / 3) * 4);
+  char *b64_str = malloc (1 + b64_len);
 
   if(!b64_str)
-    error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
+    exit_verbose("malloc", __FILE__, __LINE__);
 
   if(EVP_EncodeBlock((unsigned char*)b64_str, (const unsigned char*)asc_str, asc_len) <= 0)
-    error_at_line(1, errno, __FILE__, __LINE__, "EVP_EncodeBlock: %s", strerror(errno));
+    exit_verbose("EVP_EncodeBlock", __FILE__, __LINE__);
 
-  b64_str[--b64_len] = '\0';
+  b64_str[b64_len] = '\0';
 
   return b64_str;
 }

@@ -3,9 +3,15 @@ __To-Do List__
 
 * [Context options and parameters](https://secure.php.net/manual/en/context.php "php.net Language Reference")
 
+* store cookies
+
+* Make sure it installs successfully on MacOS
+
+* The main thing this tool is for is the high-traffic virtual host scans like CIDR blocks and port numbers
+
 * Display `Location` redirect URL's in brief mode
 
-* Integer after `Host:` header argument for `Max-Forwards`
+* Implement `Max-Forwards` request header
 
 * Implement abbreviations for common SSRF request headers like: `X-Forwarded-For`, `Client-IP`, etc.
   - xff = X-Forwarded-For

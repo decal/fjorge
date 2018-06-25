@@ -60,12 +60,12 @@ void parse_cmdline(const int ac, const char **av) {
   vcmd = calloc(1, sizeof *vcmd);
 
   if(!vcmd)
-    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+    exit_verbose("calloc", __FILE__, __LINE__);
 
   cbak = calloc(1, sizeof *cbak);
 
   if(!cbak)
-    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+    exit_verbose("calloc", __FILE__, __LINE__);
 
   // cbak->set_cookie = 
 
@@ -79,17 +79,17 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->cipher = strdup(optarg);
 
         if(!vcmd->cipher)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'f':
 #ifdef OPENSSL_FIPS
         vcmd->fips++;
 
-        printf("FIPS: %d\n", FIPS_mode());
+        fjprintf_debug("FIPS: %d\n", FIPS_mode());
 
         if(!FIPS_mode_set(1))
-          error_at_line(1, errno, __FILE__, __LINE__, "FIPS_mode_set: %s", strerror(errno));
+          exit_verbose("FIPS_mode_set", __FILE__, __LINE__);
 #endif
 
         break;
@@ -101,7 +101,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->writebuf = strdup(optarg);
 
         if(!vcmd->writebuf)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'd':
@@ -113,7 +113,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->encode = strdup(optarg);
 
         if(!vcmd->encode)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'v':
@@ -132,7 +132,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->intranet = strdup(optarg);
 
         if(!vcmd->intranet)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'V':
@@ -143,7 +143,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->basic = strdup(optarg);
 
         if(!vcmd->basic)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         if(!strchr(vcmd->basic, ':')) {
           fjputs_error("Basic authentication string is missing colon!");
@@ -160,14 +160,14 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->servername = strdup(optarg);
 
         if(!vcmd->servername)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'o':
         vcmd->nameout = strdup(optarg);
 
         if(!vcmd->nameout)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         if(!access(vcmd->nameout, F_OK))
           fjprintf_error("There is a pre-existing file at the desired output path %s (appending to it)", vcmd->nameout);
@@ -208,7 +208,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->attack = strdup(optarg);
 
         if(!vcmd->attack)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'C': /* CIDR block scan */
@@ -220,7 +220,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->noencode = strdup(optarg);
 
         if(!vcmd->noencode)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       case 'M': /* method scan */
@@ -228,7 +228,7 @@ void parse_cmdline(const int ac, const char **av) {
         vcmd->portscan = strdup(optarg);
 
         if(!vcmd->portscan)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         break;
       default:
@@ -246,7 +246,7 @@ void parse_cmdline(const int ac, const char **av) {
   vcmd->hostnam = strdup(av[optind]);
 
   if(!vcmd->hostnam)
-    error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+    exit_verbose("strdup", __FILE__, __LINE__);
 
   colon = strchr(vcmd->hostnam, ':');
 
@@ -279,7 +279,7 @@ void parse_cmdline(const int ac, const char **av) {
     vcmd->portstr = malloc(6);
 
     if(!vcmd->portstr)
-      error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
+      exit_verbose("malloc", __FILE__, __LINE__);
 
     sprintf(vcmd->portstr, "%u", vcmd->portnum);
   }
@@ -305,7 +305,7 @@ void parse_cmdline(const int ac, const char **av) {
     htrequ->verb = strdup(av[optind]);
 
     if(!htrequ->verb)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+      exit_verbose("strdup", __FILE__, __LINE__);
 
     if(++optind == ac) {
       htrequ->path = "/";
@@ -316,7 +316,7 @@ void parse_cmdline(const int ac, const char **av) {
       htrequ->path = strdup(av[optind]);
 
       if(!htrequ->path)
-        error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+        exit_verbose("strdup", __FILE__, __LINE__);
 
       if(++optind == ac) {
         htrequ->vers = "HTTP/1.1";
@@ -327,7 +327,7 @@ void parse_cmdline(const int ac, const char **av) {
         htrequ->vers = strdup(av[optind]);
 
         if(!htrequ->vers)
-          error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+          exit_verbose("strdup", __FILE__, __LINE__);
 
         HTTP_VERSION *const prover = unpack_protover(htrequ->vers);
 
@@ -341,7 +341,7 @@ void parse_cmdline(const int ac, const char **av) {
           htrequ->host = strdup(av[optind]);
 
           if(!htrequ->host)
-            error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+            exit_verbose("strdup", __FILE__, __LINE__);
 
           if(av[++optind] && optind != ac) { /* Max-Forwards */
             vcmd->acmxfwv = optind;
@@ -349,7 +349,7 @@ void parse_cmdline(const int ac, const char **av) {
             htrequ->mxfw = strdup(av[optind]);
 
             if(!htrequ->mxfw)
-              error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+              exit_verbose("strdup", __FILE__, __LINE__);
           }
         }
       }

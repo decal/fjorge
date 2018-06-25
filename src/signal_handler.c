@@ -36,5 +36,6 @@ void signal_handler(const int sign) {
 
   fjprintf_error("Caught signal: %s(%d)", signame, sign);
 
-  quick_exit(EXIT_FAILURE);
+  // quick_exit(EXIT_FAILURE);
+  return;
 }

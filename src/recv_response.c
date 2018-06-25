@@ -47,12 +47,13 @@ _again:
       }
     }
 
-    if(!strcmp(abuf, CRLF))
+    if(!(strcmp(abuf, CRLF) && strcmp(abuf, NEWL)))
       flag = 1; 
 
-    if(bret) {
-      fputs(BADGE_RECV, stdout);
-      fputs(abuf, stdout);
+    if(bret) { 
+      // fputs(BADGE_RECV, stdout);
+      if(!cnln)
+        fputs(abuf, stdout);
 
       if(!asiz && sreq->host && *(sreq->host)) {
         fputc(' ', stdout);
@@ -63,7 +64,7 @@ _again:
         fputs(RESET, stdout);
       }
 
-      fputc('\n', stdout);
+      fputc(' ', stdout);
     }
 
     if(!asiz && vcmd->verbose) {
@@ -86,7 +87,7 @@ _again:
 
     if(vcmd->output) {
       fputs(abuf, vcmd->output);
-      fputs(CRLF, vcmd->output);
+      fputs(NEWL, vcmd->output);
     }
 
     //if(!asiz && vcmd->brief) 
@@ -101,7 +102,7 @@ _again:
       if(cnln && alen >= cnln)
         break;
 
-      if(!strcmp(abuf, CRLF))
+      if(!(strcmp(abuf, CRLF) && strcmp(abuf, NEWL)))
         break;
     }
 

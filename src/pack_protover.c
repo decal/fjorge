@@ -1,12 +1,14 @@
 #include"fjorge.h"
 
 char *pack_protover(const HTTP_VERSION *aver) {
-  size_t alen = 1 + strlen(aver->proto) + strlen(aver->delim) + strlen(aver->major) + strlen(aver->minor);
+  assert(aver);
 
-  char *aret = malloc(++alen);
+  const size_t alen = 2 + strlen(aver->proto) + strlen(aver->delim) + strlen(aver->major) + strlen(aver->minor);
+
+  char *const aret = malloc(alen);
 
   if(!aret)
-    error_at_line(1, errno, __FILE__, __LINE__, "malloc: %s", strerror(errno));
+    exit_verbose("malloc", __FILE__, __LINE__);
 
   sprintf(aret, "%s%s%s.%s", aver->proto, aver->delim, aver->major, aver->minor);
 

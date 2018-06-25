@@ -8,8 +8,8 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
   register int slen = BIO_puts(abio, amsg); 
 
   if(!vcmd->brief) {
-    fputs(BADGE_SEND, stdout);
-    fputs(amsg, stdout);
+    // fputs(BADGE_SEND, stdout);
+    // fputs(amsg, stdout);
   }
 
   if(vcmd->output)
@@ -21,8 +21,8 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
     slen += BIO_puts(abio, amsg);
     
     if(!vcmd->brief) {
-      fputs(BADGE_SEND, stdout);
-      fputs(amsg, stdout);
+      // fputs(BADGE_SEND, stdout);
+      // fputs(amsg, stdout);
     }
 
     if(vcmd->output)
@@ -36,8 +36,8 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
     slen += BIO_puts(abio, amsg);
 
     if(!vcmd->brief) {
-      fputs(BADGE_SEND, stdout);
-      fputs(amsg, stdout);
+      // fputs(BADGE_SEND, stdout);
+      // fputs(amsg, stdout);
     }
 
     if(vcmd->output)
@@ -52,9 +52,9 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
       slen += BIO_puts(abio, CRLF);
 
       if(!vcmd->brief) {
-        fputs(BADGE_SEND, stdout);
-        fputs(lsp->header, stdout);
-        fputc('\n', stdout);
+        // fputs(BADGE_SEND, stdout);
+        // fputs(lsp->header, stdout);
+        // fputc('\n', stdout);
       }
 
       if(vcmd->output) {
@@ -69,10 +69,10 @@ int send_request(BIO *abio, const HTTP_REQUEST *sreq) {
   slen += BIO_puts(abio, CRLF);
 
   if(BIO_flush(abio) < 1)
-    error_at_line(0, errno, __FILE__, __LINE__, "BIO_flush: %s", strerror(errno));
+    exit_verbose("BIO_flush", __FILE__, __LINE__);
 
   if(!vcmd->brief) {
-    fputs(BADGE_SEND, stdout);
+    // fputs(BADGE_SEND, stdout);
     fputc('\n', stdout);
   }
 

@@ -2,10 +2,10 @@
 
 HTTP_VERSION *unpack_protover(const char *pv) {
   register char *aptr = NULL, *dlm0 = NULL, *dlm1 = NULL, achr = '\0';
-  HTTP_VERSION *aret = calloc(1, sizeof *aret);
+  HTTP_VERSION *restrict const aret = calloc(1, sizeof *aret);
 
   if(!aret)
-    error_at_line(1, errno, __FILE__, __LINE__, "calloc: %s", strerror(errno));
+    exit_verbose("calloc", __FILE__, __LINE__);
 
   for(aptr = (char*)pv;*aptr;++aptr) 
     if(!isalpha(*aptr)) {
@@ -16,7 +16,7 @@ HTTP_VERSION *unpack_protover(const char *pv) {
       aret->proto = strdup(pv);
 
       if(!aret->proto)
-        error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+        exit_verbose("strdup", __FILE__, __LINE__);
 
       *aptr = achr;
 
@@ -28,7 +28,7 @@ HTTP_VERSION *unpack_protover(const char *pv) {
       aret->delim = strdup(dlm0);
 
       if(!aret->delim)
-        error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+        exit_verbose("strdup", __FILE__, __LINE__);
 
       *dlm1 = achr;
       
@@ -42,12 +42,12 @@ HTTP_VERSION *unpack_protover(const char *pv) {
     aret->major = strdup(dlm1);
 
     if(!aret->major)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+      exit_verbose("strdup", __FILE__, __LINE__);
 
     aret->minor = strdup(++aptr);
 
     if(!aret->minor)
-      error_at_line(1, errno, __FILE__, __LINE__, "strdup: %s", strerror(errno));
+      exit_verbose("strdup", __FILE__, __LINE__);
 
     *--aptr = '.';
   }
